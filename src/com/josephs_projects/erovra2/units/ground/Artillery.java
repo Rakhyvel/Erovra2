@@ -35,6 +35,8 @@ public class Artillery extends GroundUnit {
 
 	public Artillery(Tuple position, Nation nation) {
 		super(position, nation, UnitType.ARTILLERY);
+
+		infoLabel.text = nation.registerNewDivisionOrdinal(type) + " Artillery Division";
 	}
 
 	public Artillery(Tuple position, Nation nation, int id) {

@@ -28,6 +28,8 @@ public class Cavalry extends GroundUnit {
 
 	public Cavalry(Tuple position, Nation nation) {
 		super(position, nation, UnitType.CAVALRY);
+
+		infoLabel.text = nation.registerNewDivisionOrdinal(type) + " Cavalry Division";
 	}
 
 	public Cavalry(Tuple position, Nation nation, int id) {

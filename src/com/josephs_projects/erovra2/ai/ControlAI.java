@@ -62,7 +62,6 @@ public class ControlAI implements AI {
 //			Central AI- Target unit
 					if (unit instanceof Infantry && !infantryBitchBoyTold) {
 						Infantry inf = (Infantry) unit;
-						infantryBitchBoyTold = inf.housekeeping();
 					} else if (ground.target()) {
 						;
 					} else if (ground.getTarget().dist(ground.position) < 1) {
@@ -82,25 +81,25 @@ public class ControlAI implements AI {
 					break;
 			}
 
-			if (nation.countFighters() < nation.knownFighters.size() + 1) {
-				for (Unit unit : nation.units.values()) {
-					// Tell infantry to build airfield
-					if (unit instanceof Infantry) {
-						Infantry inf = (Infantry) unit;
-						if (nation.buyAirfield(inf.position))
-							break;
-					}
-					// Tell airfield to produce fighters
-					if (unit instanceof Airfield) {
-						Airfield air = (Airfield) unit;
-
-						if (air.producing())
-							continue;
-
-						air.startProduction(UnitType.FIGHTER);
-					}
-				}
-			}
+//			if (nation.countFighters() < nation.knownFighters.size() + 1) {
+//				for (Unit unit : nation.units.values()) {
+//					// Tell infantry to build airfield
+//					if (unit instanceof Infantry) {
+//						Infantry inf = (Infantry) unit;
+//						if (nation.buyAirfield(inf.position))
+//							break;
+//					}
+//					// Tell airfield to produce fighters
+//					if (unit instanceof Airfield) {
+//						Airfield air = (Airfield) unit;
+//
+//						if (air.producing())
+//							continue;
+//
+//						air.startProduction(UnitType.FIGHTER);
+//					}
+//				}
+//			}
 
 			// Need ground, keep a 25:1 land ground unit ratio
 			if (80 > nation.countFightingUnits() || nation.countFightingUnits() < nation.knownUnits.size()) {

@@ -58,10 +58,11 @@ public class Plane extends Unit {
 
 	@Override
 	public void tick() {
-		if (health < 20 && Erovra2.apricot.ticks % 8 == 0) {
+		if (health < 20 && Erovra2.apricot.ticks % 8 == 0 && !Erovra2.geneticTournament) {
 			new Smoke(position);
 		}
 		super.tick();
+		hovered = boundingbox(Erovra2.terrain.getMousePosition());
 	}
 
 	@Override
@@ -86,6 +87,8 @@ public class Plane extends Unit {
 		if (hitTimer > 0 && !dead) {
 			g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_ATOP, hitTimer / 18.0f));
 			g.drawImage(hit, getAffineTransform(hit), null);
+		} else if (hovered || selected == this) {
+			g.drawImage(hit, getAffineTransform(hit), null);
 		}
 		g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1));
 	}
@@ -99,9 +102,14 @@ public class Plane extends Unit {
 			return;
 
 		position = position.add(velocity.normalize().scalar(type.speed));
-		if (!engaged && position.x > 0 && position.y > 0 && position.x < Erovra2.size * 64
-				&& position.y < Erovra2.size * 64)
-			nation.visitedSpaces[(int) position.x / 32][(int) position.y / 32] = 11000;
+		if (!engaged) {
+			for (int y = 0; y < Erovra2.size * 2; y++) {
+				for (int x = 0; x < Erovra2.size * 2; x++) {
+					if (nation.visitedSpaces[x][y] >= 0 && position.dist(new Tuple(x * 32 + 16, y * 32 + 16)) < 320)
+						nation.visitedSpaces[x][y] = 11000;
+				}
+			}
+		}
 		if (position.x > Erovra2.size * 64) {
 			a += 0.06f;
 			position.x = Erovra2.size * 64;
@@ -135,17 +143,17 @@ public class Plane extends Unit {
 		Tuple perpendicularVelocity = new Tuple(-velocity.y, velocity.x);
 		double targetAlignment = velocity.normalize().dot(innerCircle);
 
-		if (targetAlignment < 0.999 && position.dist(focalPoint) > 10) {
+		if (targetAlignment < 0.92 && position.dist(focalPoint) > 64) {
 			// If plane is basically on target
 			if (perpendicularVelocity.dot(innerCircle) > 0.03) {
 				a += 0.03f;
-			} else if (perpendicularVelocity.dot(innerCircle) < -0.03){
+			} else if (perpendicularVelocity.dot(innerCircle) < -0.03) {
 				a -= 0.03f;
 			}
-		} else if (position.dist(focalPoint) > 10){
+		} else if (targetAlignment > -0.9 && position.dist(focalPoint) > 64) {
 			// Spin around
 			// Larger value means longer extend
-			a += 0.0005f * type.speed * type.speed;
+			a += 0.03f;
 		}
 		setTarget(position.add(new Tuple(Math.sin(a), Math.cos(a))));
 		direction -= Math.PI / 2;
@@ -159,7 +167,20 @@ public class Plane extends Unit {
 	}
 
 	@Override
-	public void input(InputEvent arg0) {
+	public void input(InputEvent e) {
+		if (nation.ai != null)
+			return;
+		super.input(e);
+
+		if (e == InputEvent.MOUSE_LEFT_RELEASED) {
+			if (selected == this) {
+				this.patrolPoint.copy(Erovra2.terrain.getMousePosition());
+				selected = null;
+			} else if (hovered && selected != this) {
+				focused = null;
+				selected = this;
+			}
+		}
 	}
 
 	@Override
@@ -173,7 +194,7 @@ public class Plane extends Unit {
 			remove();
 		}
 	}
-	
+
 	@Override
 	public void setTarget(Tuple point) {
 		super.setTarget(point);

@@ -47,9 +47,11 @@ public class Terrain implements Tickable, Renderable, InputListener {
 		// TEST CODE FOR MAPS
 		for (int y = 0; y < size; y++) {
 			for (int x = 0; x < size; x++) {
-				map[x][y] = (float) ((Math.pow(map[x][y], 1) * 0.5f) + 0.453f);
+				map[x][y] = (float) (map[x][y]
+						- 1.2 * Math.sqrt((x - size / 2) * (x - size / 2) + (y - size / 2) * (y - size / 2)) / size);
 			}
 		}
+		map = Apricot.noiseMap.normalize(map);
 
 		init();
 	}

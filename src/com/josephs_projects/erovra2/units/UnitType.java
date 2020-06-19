@@ -6,8 +6,8 @@ import java.io.IOException;
 import com.josephs_projects.apricotLibrary.Apricot;
 
 public enum UnitType {
-	INFANTRY("ground", "ground", 1, 0.5, 0.2), CAVALRY("ground", "ground", 0.5, 0.5, 0.6),
-	ARTILLERY("ground", "ground", 0.5, 1.6, 0.2),
+	INFANTRY("ground", "ground", 1, 0.5, 0.2), CAVALRY("ground", "ground", .5, 0.5, 0.6),
+	ARTILLERY("ground", "ground", .5, 1.6, 0.2),
 
 	FIGHTER("air", "fighter", 0.5, 1.6, 1), ATTACKER("air", "attacker", 0.5, 1.6, 0.6),
 //	BOMBER("air", "bomber", 0.5, 5, 0.75),

@@ -7,12 +7,14 @@ public class ColorScheme {
 	public final Color borderColor;
 	public final Color highlightColor;
 	public final Color textColor;
+	public final Color disabledTextColor;
 	
-	public ColorScheme(Color backgroundColor, Color borderColor, Color highlightColor, Color textColor) {
+	public ColorScheme(Color backgroundColor, Color borderColor, Color highlightColor, Color textColor, Color disabledTextColor) {
 		this.backgroundColor = backgroundColor;
 		this.borderColor = borderColor;
 		this.highlightColor = highlightColor;
 		this.textColor = textColor;
+		this.disabledTextColor = disabledTextColor;
 	}
 	
 }

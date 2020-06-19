@@ -15,6 +15,9 @@ import com.josephs_projects.apricotLibrary.interfaces.Renderable;
 import com.josephs_projects.apricotLibrary.interfaces.Tickable;
 import com.josephs_projects.erovra2.Erovra2;
 import com.josephs_projects.erovra2.Nation;
+import com.josephs_projects.erovra2.gui.GUIWrapper;
+import com.josephs_projects.erovra2.gui.Label;
+import com.josephs_projects.erovra2.gui.ProgressBar;
 import com.josephs_projects.erovra2.gui.Updatable;
 import com.josephs_projects.erovra2.net.NetworkAdapter.AddUnit;
 import com.josephs_projects.erovra2.net.NetworkAdapter.EngageTickUnit;
@@ -54,16 +57,23 @@ public abstract class Unit implements Tickable, Renderable, InputListener, Updat
 	public UnitType type;
 	public List<Class<? extends Projectile>> projectiles = new ArrayList<>();
 
-	protected Nation nation;
+	public Nation nation;
 
 	public boolean dead;
 	public double deathTicks = 0;
 	protected int birthTick = 0;
 	public int engagedTicks = 0;
-	
+
 	public boolean hovered = false;
 	public static Unit selected = null; // Can be made a list
 	public static Unit focused = null;
+
+	protected GUIWrapper focusedOptions = new GUIWrapper(new Tuple(0, 0));
+
+	protected GUIWrapper info = new GUIWrapper(new Tuple(0, 0));
+	protected ProgressBar healthBar = new ProgressBar(176, 9, Erovra2.colorScheme);
+	protected Label infoLabel = new Label("UNDEF", Erovra2.colorScheme);
+	protected Label attackLabel = new Label("A/D/S:  ", Erovra2.colorScheme);
 
 	// Creating a unit (SINGLEPLAYER/SENDING SIDE)
 	public Unit(Tuple position, Nation nation, UnitType type) {
@@ -80,6 +90,16 @@ public abstract class Unit implements Tickable, Renderable, InputListener, Updat
 			Erovra2.net.opQ.add(new AddUnit(this));
 		}
 		nation.units.put(id, this);
+		nation.unitsMade++;
+		
+		attackLabel.fontSize = 12;
+		attackLabel.text += type.attack + " / " + type.defense + " / " + type.speed;
+		
+		info.addGUIObject(infoLabel);
+		info.addGUIObject(attackLabel);
+		info.addGUIObject(healthBar);
+
+		focusedOptions.addGUIObject(info);
 	}
 
 	// Creating a unit (RECEIVING SIDE)
@@ -165,15 +185,23 @@ public abstract class Unit implements Tickable, Renderable, InputListener, Updat
 		if (hitTimer > 0 && !dead) {
 			g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_ATOP, hitTimer / 18.0f));
 			g.drawImage(hit, getAffineTransform(hit), null);
-		} else if(hovered || selected == this || focused == this) {
+		} else if (((hovered && selected == null) || selected == this) && type != UnitType.AIRFIELD && type != UnitType.FACTORY
+				&& type != UnitType.CITY) {
 			g.drawImage(hit, getAffineTransform(hit), null);
 		}
 		float deathOpacity = (float) Math.min(1, Math.max(0, (60 - deathTicks) / 60.0));
 		g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, deathOpacity));
 		g.drawImage(image, getAffineTransform(image), null);
 		g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1));
+
+		if (focusedOptions != null) {
+			healthBar.progress = health / 100.0;
+			focusedOptions.setShown(this == focused);
+			focusedOptions
+					.updatePosition(new Tuple(Erovra2.terrain.minimap.getWidth(), Erovra2.apricot.height() - 150));
+		}
 	}
-	
+
 	@Override
 	public void input(InputEvent e) {
 		if (nation.ai != null)
@@ -187,10 +215,10 @@ public abstract class Unit implements Tickable, Renderable, InputListener, Updat
 			}
 		}
 	}
-	
+
 	@Override
 	public void update(String text) {
-		
+
 	}
 
 	/**
@@ -226,24 +254,24 @@ public abstract class Unit implements Tickable, Renderable, InputListener, Updat
 				if (!this.projectiles.contains(p.getClass()))
 					continue;
 				if (p.dangerous && boundingBox(p.position)) {
-					health -= p.attack / (type.defense * (Erovra2.terrain.getHeight(position)/10.0 + 37/40.0));
+					health -= p.attack / (type.defense * (Erovra2.terrain.getHeight(position) / 10.0 + 37 / 40.0));
 
 					if (this instanceof Building) {
-						nation.visitedSpaces[(int) p.position.x / 32][(int) p.position.y / 32] = -10;
+						nation.visitedSpaces[(int) p.position.x / 32][(int) p.position.y / 32] = -100;
 					} else {
 						health += (p.velocity.normalize().dot(position.sub(target).normalize()) - 1);
 					}
 					setEngaged(true);
 					setEngagedTicks();
 					hitTimer = 18;
-					if(nation == Erovra2.home && Erovra2.net != null) {
+					if (nation == Erovra2.home && Erovra2.net != null) {
 						Erovra2.net.opQ.add(new HitUnit(id));
 					}
 
 					p.remove();
 					if (health < 0 && (Erovra2.net == null || nation == Erovra2.home)) {
 						dead = true;
-						if(Erovra2.net != null) {
+						if (Erovra2.net != null) {
 							Erovra2.net.opQ.add(new KillUnit(id));
 						}
 						break;
@@ -268,7 +296,9 @@ public abstract class Unit implements Tickable, Renderable, InputListener, Updat
 	 */
 	@Override
 	public void remove() {
+		nation.unitsLost++;
 		Erovra2.world.remove(this);
+		focusedOptions.remove();
 		nation.units.remove(id);
 		nation.knownUnits.remove(this);
 		if (Erovra2.net != null) {
@@ -317,11 +347,11 @@ public abstract class Unit implements Tickable, Renderable, InputListener, Updat
 
 	public void setEngagedTicks() {
 		setEngagedTicksReceiver();
-		if(nation == Erovra2.home && Erovra2.net != null) {
+		if (nation == Erovra2.home && Erovra2.net != null) {
 			Erovra2.net.opQ.add(new EngageTickUnit(id));
 		}
 	}
-	
+
 	public void setEngagedTicksReceiver() {
 		if (type.speed == 0) {
 			engagedTicks = 10000000;
@@ -332,13 +362,13 @@ public abstract class Unit implements Tickable, Renderable, InputListener, Updat
 			nation.knownUnits.add(this);
 		}
 	}
-	
+
 	public boolean getEngaged() {
 		return engaged;
 	}
-	
+
 	public void setEngaged(boolean engaged) {
-		if((engaged != this.engaged) && nation == Erovra2.home && Erovra2.net != null) {
+		if ((engaged != this.engaged) && nation == Erovra2.home && Erovra2.net != null) {
 			Erovra2.net.opQ.add(new EngageUnit(id, engaged));
 		}
 		this.engaged = engaged;

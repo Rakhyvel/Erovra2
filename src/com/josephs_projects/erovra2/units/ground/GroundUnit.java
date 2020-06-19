@@ -82,31 +82,31 @@ public abstract class GroundUnit extends Unit {
 	public boolean target() {
 		// Search for closest unvisited tile
 		Tuple closestTile = null;
-		double tempDist = Double.POSITIVE_INFINITY;
+		double bestScore = Double.POSITIVE_INFINITY;
 		for (int y = 0; y < Erovra2.size * 2; y++) {
 			for (int x = 0; x < Erovra2.size * 2; x++) {
 				Tuple point = new Tuple(x * 32 + 16, y * 32 + 16);
 				// Tile must be unvisited
 				if (nation.visitedSpaces[x][y] > 0)
 					continue;
-
-				double score = position.dist(point);
+				
+				double score = position.dist(point) * nation.visitedSpaces[x][y];
 
 				// Must be land
 				if (Erovra2.terrain.getHeight(point) <= 0.5)
 					continue;
 
 				// Prefer alerted tiles over uncertain tiles
-				if (nation.visitedSpaces[x][y] <= -1) {
-					score *= -1 / (Erovra2.size * 64 * nation.visitedSpaces[x][y]);
-				}
+//				if (nation.visitedSpaces[x][y] <= -1) {
+//					score *= -1 / (Erovra2.size * 64 * nation.visitedSpaces[x][y]);
+//				}
 
-				if (nation.countFightingUnits() < nation.getOther() && point.dist(nation.capital.position) > 400)
-					continue;
+//				if (nation.countFightingUnits() < nation.getOther() && point.dist(nation.capital.position) > 100)
+//					continue;
 
 				// Must have direct line of sight to tile center
-				if (score < tempDist && lineOfSight(point)) {
-					tempDist = score;
+				if (score < bestScore && lineOfSight(point)) {
+					bestScore = score;
 					closestTile = point;
 				}
 			}
@@ -160,6 +160,11 @@ public abstract class GroundUnit extends Unit {
 				continue;
 			if (distance > 48)
 				continue;
+			if(unit instanceof Building) {
+				int x = (int) unit.position.x / 32;
+				int y = (int) unit.position.y / 32;
+				nation.visitedSpaces[x][y] = -20;
+			}
 			// Prefer GroundUnits over Buildings
 			if (distance < closestDistance) {
 				if (unit instanceof Building) {
@@ -219,7 +224,7 @@ public abstract class GroundUnit extends Unit {
 	 * @return Whether there is a straight line path of solid ground from position
 	 *         to dest
 	 */
-	protected boolean lineOfSight(Tuple dest) {
+	public boolean lineOfSight(Tuple dest) {
 		Tuple increment = dest.sub(position).normalize();
 		Tuple check = new Tuple(position);
 		double distance = position.dist(dest);
@@ -244,6 +249,7 @@ public abstract class GroundUnit extends Unit {
 				setTarget(Erovra2.terrain.getMousePosition());
 				selected = null;
 			} else if (hovered && selected != this) {
+				focused = null;
 				selected = this;
 			}
 		}

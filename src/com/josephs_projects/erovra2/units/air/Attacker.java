@@ -6,6 +6,7 @@ import java.util.List;
 import com.josephs_projects.apricotLibrary.Tuple;
 import com.josephs_projects.erovra2.Erovra2;
 import com.josephs_projects.erovra2.Nation;
+import com.josephs_projects.erovra2.projectiles.AABullet;
 import com.josephs_projects.erovra2.projectiles.GroundTargetBullet;
 import com.josephs_projects.erovra2.units.Unit;
 import com.josephs_projects.erovra2.units.UnitType;
@@ -18,10 +19,16 @@ public class Attacker extends Plane {
 		super(position, nation, UnitType.ATTACKER);
 		this.velocity = getTarget().sub(position).normalize().scalar(type.speed);
 	}
-	
+
 	public Attacker(Tuple position, Nation nation, int id) {
 		super(position, nation, UnitType.ATTACKER, id);
 		this.velocity = getTarget().sub(position).normalize().scalar(type.speed);
+	}
+
+	@Override
+	public void remove() {
+		nation.enemyNation.knownPlanes.remove(this);
+		super.remove();
 	}
 
 	@Override
@@ -33,57 +40,35 @@ public class Attacker extends Plane {
 			Unit unit = units.get(i);
 			if (unit.dead)
 				continue;
-			if(!(unit instanceof GroundUnit))
+			if (!(unit instanceof GroundUnit))
 				continue;
 			double distance = patrolPoint.dist(unit.position);
-			if(distance > tempDistance)
+			if (distance > tempDistance)
 				continue;
 			tempUnit = unit;
 			tempDistance = distance;
-			int x = (int) tempUnit.position.x / 32;
-			int y = (int) tempUnit.position.y / 32;
-			if (unit instanceof Building) {
-				nation.visitedSpaces[x][y] = 0;
-			} else {
-				nation.visitedSpaces[x][y] = -1;
-			}
+			nation.enemyNation.knownPlanes.add(this);
 		}
-		
-		if(tempUnit == null) {
-			patrolPoint.copy(nation.capital.position);
+
+		if (tempUnit == null) {
+			focalPoint.copy(patrolPoint);
 			setEngaged(false);
 			return;
 		}
-		
-		patrolPoint.copy(tempUnit.position);
-		setEngaged(true);
+
+		focalPoint.copy(tempUnit.position);
+		if (tempUnit.position.dist(position) > 120)
+			return;
 		setEngagedTicks();
-		if(tempUnit.position.sub(position).normalize().dot(velocity.normalize()) < 0.9)
-			return;
-		if(position.dist(patrolPoint) > 320)
-			return;
-		if((Erovra2.apricot.ticks - birthTick) % 60 == 0) {
-			new GroundTargetBullet(new Tuple(position), tempUnit.position.sub(position.add(new Tuple(Math.random() * 20 - 10, Math.random() * 20 - 10))), nation, type.attack);
+		if ((Erovra2.apricot.ticks - birthTick) % 15 == 0
+				&& focalPoint.sub(position).normalize().dot(velocity.normalize()) > 0.9) {
+			new GroundTargetBullet(new Tuple(position),
+					tempUnit.position.sub(position.add(new Tuple(Math.random() * 20 - 10, Math.random() * 20 - 10))),
+					nation, type.attack);
 		}
-		
-		int x = (int) tempUnit.position.x / 32;
-		int y = (int) tempUnit.position.y / 32;
-		if (!(tempUnit instanceof Building)) {
-			if (x > 0 && position.dist(tempUnit.position.add(new Tuple(-32, 0))) > 48)
-				nation.visitedSpaces[x - 1][y] = -20;
 
-			if (y > 0 && position.dist(tempUnit.position.add(new Tuple(0, -32))) > 48)
-				nation.visitedSpaces[x][y - 1] = -20;
-
-			if (x < (Erovra2.size * 2) - 1 && position.dist(tempUnit.position.add(new Tuple(32, 0))) > 48)
-				nation.visitedSpaces[x + 1][y] = -20;
-
-			if (y < (Erovra2.size * 2) - 1 && position.dist(tempUnit.position.add(new Tuple(0, 32))) > 48)
-				nation.visitedSpaces[x][y + 1] = -20;
-		}
-		
 	}
-	
+
 	// AI Methods
 	public void flyToAlertedTiles() {
 		// Search for closest unvisited tile

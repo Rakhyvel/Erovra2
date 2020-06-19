@@ -23,10 +23,16 @@ public class Fighter extends Plane {
 		super(position, nation, UnitType.FIGHTER, id);
 		this.velocity = getTarget().sub(position).normalize().scalar(type.speed);
 	}
+	
+	@Override
+	public void tick() {
+		super.tick();
+		recon();
+	}
 
 	@Override
 	public void remove() {
-		nation.enemyNation.knownFighters.remove(this);
+		nation.enemyNation.knownPlanes.remove(this);
 		super.remove();
 	}
 
@@ -50,12 +56,13 @@ public class Fighter extends Plane {
 			tempUnit = unit;
 			tempDistance = distance;
 			if (unit instanceof Fighter) {
-				nation.knownFighters.add((Fighter) unit);
+				nation.knownPlanes.add((Fighter) unit);
 			}
 		}
 
 		if (tempUnit == null) {
 			focalPoint.copy(patrolPoint);
+			this.setEngaged(false);
 			return;
 		}
 
@@ -63,9 +70,10 @@ public class Fighter extends Plane {
 		focalPoint.copy(tempUnit.position);
 		if (tempUnit.position.dist(position) > 120)
 			return;
+		this.setEngaged(true);
 		setEngagedTicks();
 		if ((Erovra2.apricot.ticks - birthTick) % 15 == 0
-				&& patrolPoint.sub(position).normalize().dot(velocity.normalize()) > 0.9) {
+				&& focalPoint.sub(position).normalize().dot(velocity.normalize()) > 0.9) {
 			new AABullet(new Tuple(position),
 					tempUnit.position.sub(position.add(new Tuple(Math.random() * 20 - 10, Math.random() * 20 - 10))),
 					nation, type.attack);
@@ -79,13 +87,20 @@ public class Fighter extends Plane {
 		for (Unit unit : nation.enemyNation.units.values()) {
 			if (!(unit instanceof Building || unit instanceof GroundUnit))
 				continue;
-			if (unit.position.dist(position) > 200)
+			if (unit.position.dist(position) > 320)
 				continue;
 
 			unit.setEngagedTicksReceiver();
 			setEngagedTicks();
-			nation.visitedSpaces[(int) unit.position.x / 32][(int) unit.position.y / 32] = -1;
+			if (unit instanceof Building) {
+				nation.visitedSpaces[(int) unit.position.x / 32][(int) unit.position.y / 32] = -20;
+			} else {
+				nation.visitedSpaces[(int) unit.position.x / 32][(int) unit.position.y / 32] = -1;
+			}
 		}
+		
+		if(nation.ai == null)
+			return false;
 
 		// Search for closest unvisited tile
 		Tuple closestTile = null;

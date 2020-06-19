@@ -8,7 +8,6 @@ import java.awt.geom.AffineTransform;
 import java.io.IOException;
 
 import com.josephs_projects.apricotLibrary.Apricot;
-import com.josephs_projects.apricotLibrary.Lexicon;
 import com.josephs_projects.apricotLibrary.Tuple;
 import com.josephs_projects.erovra2.Erovra2;
 import com.josephs_projects.erovra2.Nation;
@@ -18,23 +17,22 @@ import com.josephs_projects.erovra2.units.ground.Infantry;
 public class City extends Building {
 	boolean capital;
 	int workTimer = 6000;
-	boolean producing = false;
+	boolean producing = true;
 	private static Point[] decoration = new Point[1];
 	private static Point[] dst = new Point[1];
 	String name;
 	Font bigFont = new Font("Arial", Font.PLAIN, 24);
-	private static Lexicon cityNames;
 
 	static {
 		decoration[0] = new Point(16, 16);
 		dst[0] = new Point();
-		cityNames = new Lexicon("src/res/names.txt", 3);
 	}
 
 	public City(Tuple position, Nation nation) {
 		super(position, nation, UnitType.CITY);
-		name = cityNames.randName(5);
+		name = nation.cityNames.randName(6, 9);
 		nation.cities.add(this);
+		infoLabel.text = name;
 	}
 
 	public City(Tuple position, Nation nation, int id) {
@@ -46,12 +44,13 @@ public class City extends Building {
 		if (Erovra2.apricot.ticks % 300 == 0) {
 			nation.coins++;
 		}
-		if ((Erovra2.net == null || nation == Erovra2.home) && workTimer == 0) {
-			new Infantry(position, nation);
-			workTimer = 3600;
-		} else if (capital && producing && nation.population < nation.countFightingUnits()) {
-			workTimer--;
+		if (capital) {
+			if ((Erovra2.net == null || nation == Erovra2.home) && workTimer == 0) {
+				new Infantry(position, nation);
+				workTimer = 6000;
+			}
 		}
+		workTimer--;
 		super.tick();
 	}
 
@@ -64,7 +63,7 @@ public class City extends Building {
 			return;
 
 		g.setColor(Color.white);
-		bigFont = new Font("sitka text", Font.BOLD, (int) (18 * (Erovra2.zoom + 0.5)));
+		bigFont = new Font("sitka text", Font.BOLD, (int) (14 * (Erovra2.zoom + 0.5)));
 		g.setFont(bigFont);
 		if (name != null) {
 			int width = g.getFontMetrics(bigFont).stringWidth(name);
