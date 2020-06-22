@@ -2,6 +2,7 @@ package com.josephs_projects.erovra2.units.air;
 
 import java.awt.AlphaComposite;
 import java.awt.Graphics2D;
+import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 
@@ -172,9 +173,18 @@ public class Plane extends Unit {
 			return;
 		super.input(e);
 
-		if (e == InputEvent.MOUSE_LEFT_RELEASED) {
+		if (e == InputEvent.MOUSE_LEFT_RELEASED && !Erovra2.apricot.keyboard.keyDown(KeyEvent.VK_CONTROL)) {
 			if (selected == this) {
-				this.patrolPoint.copy(Erovra2.terrain.getMousePosition());
+				if (Erovra2.apricot.mouse.position.x < Erovra2.terrain.minimap.getWidth()
+						&& Erovra2.apricot.mouse.position.y > Erovra2.apricot.height()
+								- Erovra2.terrain.minimap.getHeight()) {
+					int y = (int) Erovra2.apricot.mouse.position.y - (Erovra2.apricot.height()
+							- Erovra2.terrain.minimap.getHeight());
+					double scale = Erovra2.terrain.size / (double) Erovra2.terrain.minimap.getWidth();
+					this.patrolPoint.copy(new Tuple(Erovra2.apricot.mouse.position.x * scale, y * scale));
+				} else {
+					this.patrolPoint.copy(Erovra2.terrain.getMousePosition());
+				}
 				selected = null;
 			} else if (hovered && selected != this) {
 				focused = null;

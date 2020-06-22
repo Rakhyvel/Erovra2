@@ -2,6 +2,7 @@ package com.josephs_projects.erovra2.units;
 
 import java.awt.AlphaComposite;
 import java.awt.Graphics2D;
+import java.awt.event.KeyEvent;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
@@ -91,10 +92,10 @@ public abstract class Unit implements Tickable, Renderable, InputListener, Updat
 		}
 		nation.units.put(id, this);
 		nation.unitsMade++;
-		
+
 		attackLabel.fontSize = 12;
 		attackLabel.text += type.attack + " / " + type.defense + " / " + type.speed;
-		
+
 		info.addGUIObject(infoLabel);
 		info.addGUIObject(attackLabel);
 		info.addGUIObject(healthBar);
@@ -185,8 +186,8 @@ public abstract class Unit implements Tickable, Renderable, InputListener, Updat
 		if (hitTimer > 0 && !dead) {
 			g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_ATOP, hitTimer / 18.0f));
 			g.drawImage(hit, getAffineTransform(hit), null);
-		} else if (((hovered && selected == null) || selected == this) && type != UnitType.AIRFIELD && type != UnitType.FACTORY
-				&& type != UnitType.CITY) {
+		} else if (((hovered && selected == null&& !Erovra2.apricot.keyboard.keyDown(KeyEvent.VK_CONTROL)) || selected == this) && type != UnitType.AIRFIELD
+				&& type != UnitType.FACTORY && type != UnitType.CITY) {
 			g.drawImage(hit, getAffineTransform(hit), null);
 		}
 		float deathOpacity = (float) Math.min(1, Math.max(0, (60 - deathTicks) / 60.0));
@@ -207,7 +208,7 @@ public abstract class Unit implements Tickable, Renderable, InputListener, Updat
 		if (nation.ai != null)
 			return;
 
-		if (e == InputEvent.MOUSE_RIGHT_RELEASED) {
+		if (e == InputEvent.MOUSE_RIGHT_RELEASED && !Erovra2.apricot.keyboard.keyDown(KeyEvent.VK_CONTROL)) {
 			if (focused == this) {
 				focused = null;
 			} else if (hovered && focused != this) {

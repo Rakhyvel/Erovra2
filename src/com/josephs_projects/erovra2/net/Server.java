@@ -45,6 +45,10 @@ public class Server extends NetworkAdapter {
 			out.writeObject(Erovra2.terrain.map);
 			out.flush();
 
+			System.out.println("Sending ore array...");
+			out.writeObject(Erovra2.terrain.ore);
+			out.flush();
+
 			System.out.println("Creating and sending nations...");
 			Erovra2.startNewMatch();
 			out.writeObject(Erovra2.enemy);

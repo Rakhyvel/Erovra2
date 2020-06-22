@@ -1,5 +1,6 @@
 package com.josephs_projects.erovra2.units.ground;
 
+import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -89,7 +90,7 @@ public abstract class GroundUnit extends Unit {
 				// Tile must be unvisited
 				if (nation.visitedSpaces[x][y] > 0)
 					continue;
-				
+
 				double score = position.dist(point) * nation.visitedSpaces[x][y];
 
 				// Must be land
@@ -160,7 +161,7 @@ public abstract class GroundUnit extends Unit {
 				continue;
 			if (distance > 48)
 				continue;
-			if(unit instanceof Building) {
+			if (unit instanceof Building) {
 				int x = (int) unit.position.x / 32;
 				int y = (int) unit.position.y / 32;
 				nation.visitedSpaces[x][y] = -20;
@@ -244,9 +245,18 @@ public abstract class GroundUnit extends Unit {
 			return;
 		super.input(e);
 
-		if (e == InputEvent.MOUSE_LEFT_RELEASED) {
+		if (e == InputEvent.MOUSE_LEFT_RELEASED && !Erovra2.apricot.keyboard.keyDown(KeyEvent.VK_CONTROL)) {
 			if (selected == this) {
-				setTarget(Erovra2.terrain.getMousePosition());
+				if (Erovra2.apricot.mouse.position.x < Erovra2.terrain.minimap.getWidth()
+						&& Erovra2.apricot.mouse.position.y > Erovra2.apricot.height()
+								- Erovra2.terrain.minimap.getHeight()) {
+					int y = (int) Erovra2.apricot.mouse.position.y - (Erovra2.apricot.height()
+							- Erovra2.terrain.minimap.getHeight());
+					double scale = Erovra2.terrain.size / (double) Erovra2.terrain.minimap.getWidth();
+					setTarget(new Tuple(Erovra2.apricot.mouse.position.x * scale, y * scale));
+				} else {
+					setTarget(Erovra2.terrain.getMousePosition());
+				}
 				selected = null;
 			} else if (hovered && selected != this) {
 				focused = null;

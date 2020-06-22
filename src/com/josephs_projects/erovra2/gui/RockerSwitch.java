@@ -33,23 +33,20 @@ public class RockerSwitch extends GUIObject {
 		if (!shown)
 			return;
 
-
-		g.setColor(scheme.backgroundColor);
-
-		g.fillRect((int) position.x + label.width(), (int) position.y, width, height);
-
-		g.setColor(scheme.borderColor);
-		g.setStroke(new BasicStroke(2));
-		g.drawRect((int) position.x + label.width(), (int) position.y, width, height);
-
-		int xOffset = value ? width / 2 + 4 : 0;
+		// Draw background
 		if (value) {
 			g.setColor(Erovra2.home.color);
 		} else {
 			g.setColor(scheme.highlightColor);
 		}
+		g.fillRect((int) position.x + label.width(), (int) position.y, width, height);
+
+		// Draw rocker fill
+		int xOffset = value ? width / 2 + 4 : 0;
+		g.setColor(scheme.backgroundColor);
 		g.fillRect((int) position.x + label.width() + xOffset, (int) position.y, width / 2 - 4, height);
 
+		// Draw rocker border
 		g.setColor(scheme.borderColor);
 		g.setStroke(new BasicStroke(2));
 		g.drawRect((int) position.x + label.width() + xOffset, (int) position.y, width / 2 - 4, height);

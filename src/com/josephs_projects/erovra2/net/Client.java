@@ -36,8 +36,8 @@ public class Client extends NetworkAdapter {
 			in = new ObjectInputStream(new BufferedInputStream(socket.getInputStream()));
 			System.out.println("Input stream created...");
 
-			Erovra2.terrain = new Terrain((float[][]) in.readObject());
-			System.out.println("Terrain array received.");
+			Erovra2.terrain = new Terrain((float[][]) in.readObject(), (float[][]) in.readObject());
+			System.out.println("Terrain and ore received.");
 
 			Erovra2.world.add(Erovra2.home = (Nation) in.readObject());
 			System.out.println(Erovra2.home.name);

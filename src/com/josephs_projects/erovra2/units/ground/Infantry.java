@@ -81,6 +81,10 @@ public class Infantry extends GroundUnit implements Updatable {
 		buildAirfieldButton.label.text = "Build airfield (" + nation.airfieldCost + ")";
 		buildCityButton.label.text = "Build city (" + nation.cityCost + ")";
 		buildFactoryButton.label.text = "Build factory (" + nation.factoryCost + ")";
+		
+		buildAirfieldButton.active = nation.coins >= nation.airfieldCost;
+		buildCityButton.active = nation.coins >= nation.cityCost;
+		buildFactoryButton.active = nation.coins >= nation.factoryCost;
 
 		float deathOpacity = (float) Math.min(1, Math.max(0, (60 - deathTicks) / 60.0));
 		g.setColor(new Color(0, 0, 0, deathOpacity));

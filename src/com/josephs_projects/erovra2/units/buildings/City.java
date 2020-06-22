@@ -11,6 +11,7 @@ import com.josephs_projects.apricotLibrary.Apricot;
 import com.josephs_projects.apricotLibrary.Tuple;
 import com.josephs_projects.erovra2.Erovra2;
 import com.josephs_projects.erovra2.Nation;
+import com.josephs_projects.erovra2.gui.Label;
 import com.josephs_projects.erovra2.units.UnitType;
 import com.josephs_projects.erovra2.units.ground.Infantry;
 
@@ -22,6 +23,8 @@ public class City extends Building {
 	private static Point[] dst = new Point[1];
 	String name;
 	Font bigFont = new Font("Arial", Font.PLAIN, 24);
+	double oreMined = 5;
+	Label oreMinedLabel = new Label("", Erovra2.colorScheme);
 
 	static {
 		decoration[0] = new Point(16, 16);
@@ -33,6 +36,8 @@ public class City extends Building {
 		name = nation.cityNames.randName(6, 9);
 		nation.cities.add(this);
 		infoLabel.text = name;
+		oreMinedLabel.fontSize = 14;
+		info.addGUIObject(oreMinedLabel);
 	}
 
 	public City(Tuple position, Nation nation, int id) {
@@ -51,6 +56,8 @@ public class City extends Building {
 			}
 		}
 		workTimer--;
+		oreMined += Erovra2.terrain.ore[(int) position.x][(int) position.y] * (1 / 120.0);
+		oreMinedLabel.text = "Ore: " + (int) oreMined;
 		super.tick();
 	}
 

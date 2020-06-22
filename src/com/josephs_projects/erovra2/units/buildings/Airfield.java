@@ -105,7 +105,7 @@ public class Airfield extends Building {
 		if (text.contains("Order fighter")) {
 			startProduction(UnitType.FIGHTER);
 		} else if (text.contains("Order attacker")) {
-			startProduction(UnitType.CAVALRY);
+			startProduction(UnitType.ATTACKER);
 		} else if (text.contains("Cancel order")) {
 			order = null;
 		}
@@ -115,14 +115,18 @@ public class Airfield extends Building {
 		if (nation.population < nation.countFightingUnits())
 			return;
 		if (order == UnitType.FIGHTER) {
-			if (nation.coins < 15)
+			if (nation.coins < 15) {
+				this.order = null;
 				return;
+			}
 			workTimer = 6000;
 			nation.coins -= 15;
 		}
 		if (order == UnitType.ATTACKER) {
-			if (nation.coins < 30)
+			if (nation.coins < 30) {
+				this.order = null;
 				return;
+			}
 			workTimer = 12000;
 			nation.coins -= 30;
 		}

@@ -16,6 +16,7 @@ public class Button extends GUIObject {
 	public Label label;
 	boolean isHovered;
 	boolean isClicked;
+	public boolean active = true;
 
 	public Button(String text, int width, int height, ColorScheme scheme) {
 		super(new Tuple());
@@ -33,13 +34,16 @@ public class Button extends GUIObject {
 	public void render(Graphics2D g) {
 		if (!shown)
 			return;
+		label.active = this.active;
+		if(!active)
+			isHovered = false;
 
 		if (isHovered) {
 			g.setColor(scheme.highlightColor);
 		} else {
 			g.setColor(scheme.backgroundColor);
 		}
-		
+
 		g.fillRect((int) position.x, (int) position.y, width, height);
 
 		g.setColor(scheme.borderColor);
@@ -49,8 +53,9 @@ public class Button extends GUIObject {
 
 	@Override
 	public void input(InputEvent e) {
-		if (!shown)
+		if (!shown || !active) {
 			return;
+		}
 		if (e == InputEvent.MOUSE_MOVED) {
 			int diffX = (int) (Erovra2.apricot.mouse.position.x - position.x);
 			int diffY = (int) (Erovra2.apricot.mouse.position.y - position.y);
@@ -81,26 +86,26 @@ public class Button extends GUIObject {
 	public int getRenderOrder() {
 		return Erovra2.GUI_LEVEL;
 	}
-	
+
 	@Override
 	public void setShown(boolean shown) {
 		this.shown = shown;
 		label.setShown(shown);
 	}
-	
+
 	public void updatePosition(Tuple position) {
 		this.position = position;
 		label.updatePosition(position.add(new Tuple(width / 2, height / 2 - 4)));
 	}
 
 	public int height() {
-		if(!shown)
+		if (!shown)
 			return 0;
 		return height + 2 * margin;
 	}
 
 	public int width() {
-		if(!shown)
+		if (!shown)
 			return 0;
 		return width + 2 * margin;
 	}

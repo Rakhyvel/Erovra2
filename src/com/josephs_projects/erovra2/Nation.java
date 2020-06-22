@@ -73,34 +73,34 @@ public class Nation implements Tickable, Serializable {
 		init();
 		this.color = color;
 
-		int randNation = 8;//(int) (Math.random() * 9);
+		int randNation = (int) (Math.random() * 9);
 		switch (randNation) {
 		case 0:
-			cityNames = new Lexicon("src/res/names/americanNames.txt", 3, 5);
+			cityNames = new Lexicon("/res/names/americanNames.txt", 3, 5);
 			break;
 		case 1:
-			cityNames = new Lexicon("src/res/names/chineseNames.txt", 3, 5);
+			cityNames = new Lexicon("/res/names/chineseNames.txt", 3, 5);
 			break;
 		case 2:
-			cityNames = new Lexicon("src/res/names/englishNames.txt", 3, 5);
+			cityNames = new Lexicon("/res/names/englishNames.txt", 3, 5);
 			break;
 		case 3:
-			cityNames = new Lexicon("src/res/names/frenchNames.txt", 3, 5);
+			cityNames = new Lexicon("/res/names/frenchNames.txt", 3, 5);
 			break;
 		case 4:
-			cityNames = new Lexicon("src/res/names/germanNames.txt", 3, 5);
+			cityNames = new Lexicon("/res/names/germanNames.txt", 3, 5);
 			break;
 		case 5:
-			cityNames = new Lexicon("src/res/names/italianNames.txt", 3, 5);
+			cityNames = new Lexicon("/res/names/italianNames.txt", 3, 5);
 			break;
 		case 6:
-			cityNames = new Lexicon("src/res/names/japaneseNames.txt", 3, 5);
+			cityNames = new Lexicon("/res/names/japaneseNames.txt", 3, 5);
 			break;
 		case 7:
-			cityNames = new Lexicon("src/res/names/russianNames.txt", 3, 5);
+			cityNames = new Lexicon("/res/names/russianNames.txt", 3, 5);
 			break;
 		case 8:
-			cityNames = new Lexicon("src/res/names/swedishNames.txt", 3, 5);
+			cityNames = new Lexicon("/res/names/swedishNames.txt", 3, 5);
 			break;
 		}
 	}

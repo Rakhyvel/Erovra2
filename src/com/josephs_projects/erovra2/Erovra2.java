@@ -19,6 +19,12 @@ import com.josephs_projects.erovra2.net.NetworkAdapter;
 import com.josephs_projects.erovra2.net.Server;
 import com.josephs_projects.erovra2.units.buildings.City;
 
+/*
+ * Principles:
+ * - Winning should not be random
+ * - No pay to win
+ */
+
 public class Erovra2 implements InputListener {
 	public static Apricot apricot;
 	public static World world;
@@ -33,7 +39,7 @@ public class Erovra2 implements InputListener {
 
 	public static Terrain terrain;
 
-	public static int size = 20;// 768 / 64;
+	public static int size = 30;
 	public static double zoom = 1;
 	public static double dt = 1;
 
@@ -45,7 +51,7 @@ public class Erovra2 implements InputListener {
 	public static final int AIR_LEVEL = 5;
 	public static final int GUI_LEVEL = 6;
 	public static final ColorScheme colorScheme = new ColorScheme(new Color(40, 40, 40, 180), new Color(250, 250, 250),
-			new Color(128, 128, 128, 180), new Color(250, 250, 250), new Color(250, 0, 0));
+			new Color(128, 128, 128, 180), new Color(250, 250, 250), new Color(128, 128, 128));
 
 	public static AudioClip gun;
 	public static AudioClip mortar;
