@@ -46,7 +46,7 @@ public class Server extends NetworkAdapter {
 			out.flush();
 
 			System.out.println("Sending ore array...");
-			out.writeObject(Erovra2.terrain.ore);
+			out.writeObject(Erovra2.terrain.getOreArray());
 			out.flush();
 
 			System.out.println("Creating and sending nations...");

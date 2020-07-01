@@ -63,11 +63,19 @@ public class GUIWrapper extends GUIObject {
 		if(!shown) {
 			return 0;
 		}
-		int height = 0;
+		int height = padding;
+		int rowHeight = 0; // Used for determining the width of the column
 		for (GUIObject o : objects) {
+			// Check for vertical overflow
+			if(!o.shown)
+				continue;
+			if (position.y + height + o.height() > Erovra2.apricot.height()) {
+				height = padding;
+			}
 			height += o.height();
+			rowHeight = Math.max(rowHeight, o.height());
 		}
-		return height + padding;
+		return 100;
 	}
 
 	@Override
@@ -91,6 +99,7 @@ public class GUIWrapper extends GUIObject {
 			// Check for vertical overflow
 			if(!o.shown)
 				continue;
+			o.position = new Tuple(position.x + width, position.y + height);
 			if (position.y + height + o.height() > Erovra2.apricot.height()) {
 				height = padding;
 				width += colWidth;

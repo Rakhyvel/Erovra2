@@ -4,6 +4,7 @@ import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Point;
+import java.awt.RenderingHints;
 import java.awt.geom.AffineTransform;
 import java.util.ArrayList;
 import java.util.List;
@@ -15,6 +16,7 @@ import com.josephs_projects.erovra2.projectiles.Shell;
 import com.josephs_projects.erovra2.units.Unit;
 import com.josephs_projects.erovra2.units.UnitType;
 import com.josephs_projects.erovra2.units.buildings.Building;
+import com.josephs_projects.erovra2.units.buildings.City;
 
 public class Artillery extends GroundUnit {
 	private static Point[] decoration = new Point[5];
@@ -36,13 +38,13 @@ public class Artillery extends GroundUnit {
 	public Artillery(Tuple position, Nation nation) {
 		super(position, nation, UnitType.ARTILLERY);
 
-		infoLabel.text = nation.registerNewDivisionOrdinal(type) + " Artillery Division";
+		infoLabel.text = nation.registerNewDivisionOrdinal(type) + " Artillery Battery";
 	}
 
 	public Artillery(Tuple position, Nation nation, int id) {
 		super(position, nation, UnitType.ARTILLERY, id);
 	}
-	
+
 	@Override
 	public void render(Graphics2D g) {
 		AffineTransform af = getAffineTransform(image);
@@ -50,17 +52,23 @@ public class Artillery extends GroundUnit {
 		super.render(g);
 		if (nation == Erovra2.enemy && engagedTicks <= 0 && !dead)
 			return;
-		
+
 		float deathOpacity = (float) Math.min(1, Math.max(0, (60 - deathTicks) / 60.0));
 		g.setColor(new Color(0, 0, 0, deathOpacity));
+		if (Erovra2.zoom > 1.5) {
+			g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+		} else {
+			g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
+		}
 		g.setStroke(new BasicStroke((float) (Erovra2.zoom + 1), BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
 		g.drawLine(dst[0].x, dst[0].y, dst[2].x, dst[2].y);
 		g.drawLine(dst[0].x, dst[0].y, dst[3].x, dst[3].y);
 		g.drawLine(dst[1].x, dst[1].y, dst[2].x, dst[2].y);
 		g.drawLine(dst[1].x, dst[1].y, dst[3].x, dst[3].y);
-		
-		int width = (int)(6 * Erovra2.zoom);
+
+		int width = (int) (6 * Erovra2.zoom);
 		g.fillOval(dst[4].x - width / 2, dst[4].y - width / 2, width, width);
+		g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
 	}
 
 	@Override
@@ -72,12 +80,12 @@ public class Artillery extends GroundUnit {
 		List<Unit> units = new ArrayList<Unit>(nation.enemyNation.units.values());
 		for (int i = 0; i < units.size(); i++) {
 			Unit unit = units.get(i);
-			if(!(unit instanceof Building || unit instanceof GroundUnit))
+			if (!(unit instanceof City || unit instanceof GroundUnit))
 				continue;
 			double distance = unit.position.dist(position);
 			if (unit.dead)
 				continue;
-			if (distance > 88)
+			if (distance > 120)
 				continue;
 			// Prefer GroundUnits over Buildings
 			if (distance < closestDistance) {
@@ -98,19 +106,19 @@ public class Artillery extends GroundUnit {
 				}
 			}
 		}
-		// Set engaged to false if none found
-		if (closest == null) {
-			setEngaged(false);
+		if (closest == null)
 			return;
+		// Set engaged to false if none found
+		if (closest.type != UnitType.CITY && closest.position.dist(position) < 48) {
+			setTarget(position);
 		}
-		// Shoot enemy units if found
+		lookat.copy(closest.position);
 		setEngaged(true);
 		setEngagedTicks();
 		if (Erovra2.apricot.ticks % 200 == 0) {
 			int x = (int) closest.position.x / 32;
 			int y = (int) closest.position.y / 32;
 			nation.visitedSpaces[x][y] = -1;
-			setTarget(closest.position);
 			new Shell(new Tuple(position), new Tuple(closest.position), nation, type.attack);
 		}
 		int x = (int) closest.position.x / 32;

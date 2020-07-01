@@ -4,6 +4,7 @@ import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Point;
+import java.awt.RenderingHints;
 import java.awt.geom.AffineTransform;
 
 import com.josephs_projects.apricotLibrary.Tuple;
@@ -29,7 +30,7 @@ public class Cavalry extends GroundUnit {
 	public Cavalry(Tuple position, Nation nation) {
 		super(position, nation, UnitType.CAVALRY);
 
-		infoLabel.text = nation.registerNewDivisionOrdinal(type) + " Cavalry Division";
+		infoLabel.text = nation.registerNewDivisionOrdinal(type) + " Cavalry Troop";
 	}
 
 	public Cavalry(Tuple position, Nation nation, int id) {
@@ -46,6 +47,11 @@ public class Cavalry extends GroundUnit {
 
 		float deathOpacity = (float) Math.min(1, Math.max(0, (60 - deathTicks) / 60.0));
 		g.setColor(new Color(0, 0, 0, deathOpacity));
+		if (Erovra2.zoom > 1.5) {
+			g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+		} else {
+			g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
+		}
 		g.setStroke(new BasicStroke((float) (Erovra2.zoom + 1), BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
 		g.drawLine(dst[0].x, dst[0].y, dst[1].x, dst[1].y);
 
@@ -53,6 +59,7 @@ public class Cavalry extends GroundUnit {
 		g.drawLine(dst[0].x, dst[0].y, dst[3].x, dst[3].y);
 		g.drawLine(dst[1].x, dst[1].y, dst[2].x, dst[2].y);
 		g.drawLine(dst[1].x, dst[1].y, dst[3].x, dst[3].y);
+		g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
 	}
 
 }

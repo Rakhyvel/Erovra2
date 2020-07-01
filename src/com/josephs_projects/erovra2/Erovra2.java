@@ -1,10 +1,13 @@
 package com.josephs_projects.erovra2;
 
 import java.awt.Color;
+import java.awt.Image;
 import java.awt.event.KeyEvent;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.swing.ImageIcon;
 
 import com.josephs_projects.apricotLibrary.Apricot;
 import com.josephs_projects.apricotLibrary.Tuple;
@@ -12,7 +15,7 @@ import com.josephs_projects.apricotLibrary.World;
 import com.josephs_projects.apricotLibrary.audio.AudioClip;
 import com.josephs_projects.apricotLibrary.input.InputEvent;
 import com.josephs_projects.apricotLibrary.interfaces.InputListener;
-import com.josephs_projects.erovra2.ai.GeneticAI;
+import com.josephs_projects.erovra2.ai.NewAI;
 import com.josephs_projects.erovra2.gui.ColorScheme;
 import com.josephs_projects.erovra2.net.Client;
 import com.josephs_projects.erovra2.net.NetworkAdapter;
@@ -23,25 +26,34 @@ import com.josephs_projects.erovra2.units.buildings.City;
  * Principles:
  * - Winning should not be random
  * - No pay to win
+ * 
+ * Name Ideas:
+ * - Civitania
+ * - 
+ * 
+ * This shit pisses me off so fucking much they wont do what I tell them to wtf
+ * I dont want to make this game, I just want to have made this game
  */
 
 public class Erovra2 implements InputListener {
 	public static Apricot apricot;
 	public static World world;
+	public Image icon = new ImageIcon(getClass().getResource("/res/icon.png")).getImage();
 
 	public static NetworkAdapter net;
 
 	public static Nation home;
 	public static Nation enemy;
 
-	public static Color friendlyColor = new Color(100, 100, 210);
-	public static Color enemyColor = new Color(210, 95, 95);
+	public static Color friendlyColor = new Color(105, 105, 210);
+	public static Color enemyColor = new Color(210, 105, 105);
 
 	public static Terrain terrain;
+	public static GUI gui;
 
-	public static int size = 30;
+	public static int size = 25;
 	public static double zoom = 1;
-	public static double dt = 1;
+	public static double dt = 16;
 
 	public static final int TERRAIN_LEVEL = 0;
 	public static final int BUILDING_LEVEL = 1;
@@ -51,7 +63,7 @@ public class Erovra2 implements InputListener {
 	public static final int AIR_LEVEL = 5;
 	public static final int GUI_LEVEL = 6;
 	public static final ColorScheme colorScheme = new ColorScheme(new Color(40, 40, 40, 180), new Color(250, 250, 250),
-			new Color(128, 128, 128, 180), new Color(250, 250, 250), new Color(128, 128, 128));
+			new Color(128, 128, 128, 180), new Color(250, 250, 250), new Color(128, 128, 128), new Color(211, 86, 64));
 
 	public static AudioClip gun;
 	public static AudioClip mortar;
@@ -60,8 +72,10 @@ public class Erovra2 implements InputListener {
 	public static boolean geneticTournament = false;
 
 	public static void main(String[] args) {
-		apricot = new Apricot("Campaign: Direct Strike", 1366, 768);
+		apricot = new Apricot("Civitania", 1366, 768);
+		apricot.setIcon(new Erovra2().icon);
 		world = new World();
+		Apricot.rand.setSeed(0);
 
 		try {
 			gun = new AudioClip("src/res/audio/gun.wav");
@@ -83,10 +97,12 @@ public class Erovra2 implements InputListener {
 		} else {
 			terrain = new Terrain(size * 64, Apricot.rand.nextInt());
 			startNewMatch();
+			gui = new GUI(home);
 			Erovra2.home.setCapital(new City(Erovra2.home.capitalPoint, Erovra2.home));
 			Erovra2.enemy.setCapital(new City(Erovra2.enemy.capitalPoint, Erovra2.enemy));
 			Erovra2.terrain.setOffset(new Tuple(Erovra2.size / 2 * 64, Erovra2.size / 2 * 64));
 			terrain.setOffset(home.capitalPoint);
+//			apricot.setDeltaT(1);
 		}
 
 		apricot.setWorld(world);
@@ -116,8 +132,8 @@ public class Erovra2 implements InputListener {
 	}
 
 	public static void startNewMatch() {
-		home = new Nation("Home nation", friendlyColor, null);
-		enemy = new Nation("Enemy nation", enemyColor, new GeneticAI());
+		home = new Nation("Home nation", friendlyColor, new NewAI());
+		enemy = new Nation("Enemy nation", enemyColor, new NewAI());
 		home.enemyNation = enemy;
 		enemy.enemyNation = home;
 
@@ -128,7 +144,7 @@ public class Erovra2 implements InputListener {
 				testPoint.x += 64;
 				testPoint.y = 64 + 32;
 			}
-		} while (terrain.getHeight(testPoint) < 0.5);
+		} while (terrain.getHeight(testPoint) <= 0.55);
 
 		Tuple testPoint2 = new Tuple((64 * size) - 64 - 32, (64 * size) - 32);
 		do {
@@ -137,7 +153,7 @@ public class Erovra2 implements InputListener {
 				testPoint2.x -= 64;
 				testPoint2.y = (64 * size) - 32;
 			}
-		} while (terrain.getHeight(testPoint2) < 0.5);
+		} while (terrain.getHeight(testPoint2) <= 0.55);
 
 		home.capitalPoint = testPoint2;
 		enemy.capitalPoint = testPoint;
@@ -166,9 +182,11 @@ public class Erovra2 implements InputListener {
 			if (apricot.keyboard.lastKey == KeyEvent.VK_PERIOD) {
 				dt /= 2;
 				apricot.setDeltaT(dt);
+				gui.messageContainer.addMessage("Time warp: " + String.format("%.0f", 16.0 / dt) + "x", Color.white);
 			} else if (apricot.keyboard.lastKey == KeyEvent.VK_COMMA) {
 				dt *= 2;
 				apricot.setDeltaT(dt);
+				gui.messageContainer.addMessage("Time warp: " + String.format("%.0f", 16.0 / dt) + "x", Color.white);
 			}
 		}
 	}

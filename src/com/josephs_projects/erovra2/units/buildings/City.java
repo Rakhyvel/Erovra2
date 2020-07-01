@@ -4,27 +4,37 @@ import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.Point;
+import java.awt.RenderingHints;
 import java.awt.geom.AffineTransform;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.josephs_projects.apricotLibrary.Apricot;
 import com.josephs_projects.apricotLibrary.Tuple;
 import com.josephs_projects.erovra2.Erovra2;
 import com.josephs_projects.erovra2.Nation;
 import com.josephs_projects.erovra2.gui.Label;
+import com.josephs_projects.erovra2.gui.RockerSwitch;
+import com.josephs_projects.erovra2.particles.Coin;
 import com.josephs_projects.erovra2.units.UnitType;
 import com.josephs_projects.erovra2.units.ground.Infantry;
 
 public class City extends Building {
 	boolean capital;
-	int workTimer = 6000;
+	int workTimer = 18000;
 	boolean producing = true;
 	private static Point[] decoration = new Point[1];
 	private static Point[] dst = new Point[1];
-	String name;
+	public String name;
 	Font bigFont = new Font("Arial", Font.PLAIN, 24);
-	double oreMined = 5;
+	double oreMined = 0;
 	Label oreMinedLabel = new Label("", Erovra2.colorScheme);
+
+	private Label recruitsLabel = new Label("New recruits: ", Erovra2.colorScheme);
+	public RockerSwitch recruitSwitch = new RockerSwitch("Recruitment ", 40, 20, Erovra2.colorScheme);
+
+	List<Building> buildings = new ArrayList<>();
 
 	static {
 		decoration[0] = new Point(16, 16);
@@ -38,26 +48,44 @@ public class City extends Building {
 		infoLabel.text = name;
 		oreMinedLabel.fontSize = 14;
 		info.addGUIObject(oreMinedLabel);
+		recruitsLabel.fontSize = 17;
+		nation.population += 10;
+
+		info.addGUIObject(recruitsLabel);
+		info.addGUIObject(recruitSwitch);
 	}
 
 	public City(Tuple position, Nation nation, int id) {
 		super(position, nation, UnitType.CITY, id);
 	}
 
+	public City(Tuple position, Nation nation, String name, double oreMined) {
+		super(position, nation, UnitType.CITY);
+		this.name = name;
+		this.oreMined = oreMined;
+	}
+
 	@Override
 	public void tick() {
 		if (Erovra2.apricot.ticks % 300 == 0) {
-			nation.coins++;
+			new Coin(new Tuple(position), nation);
 		}
-		if (capital) {
-			if ((Erovra2.net == null || nation == Erovra2.home) && workTimer == 0) {
-				new Infantry(position, nation);
-				workTimer = 6000;
-			}
+		if ((Erovra2.net == null || nation == Erovra2.home) && workTimer == 0) {
+			new Infantry(position, nation);
+			if (nation == Erovra2.home)
+				Erovra2.gui.messageContainer.addMessage("New recruits ready at " + name + "!", nation.color);
+			workTimer = 18000;
 		}
-		workTimer--;
-		oreMined += Erovra2.terrain.ore[(int) position.x][(int) position.y] * (1 / 120.0);
-		oreMinedLabel.text = "Ore: " + (int) oreMined;
+		if (recruitSwitch != null && recruitSwitch.value
+				&& nation.mobilized <= nation.population - UnitType.INFANTRY.population)
+			workTimer--;
+		if (recruitSwitch != null && nation.mobilized > nation.population - UnitType.INFANTRY.population) {
+			recruitSwitch.value = false;
+		}
+		double ore = Math.max(0, (Erovra2.terrain.getOre(position) - 0.5));
+		oreMined += ore / 100.0;
+		if (oreMinedLabel != null)
+			oreMinedLabel.text = "Ore: " + (int) oreMined + "&o";
 		super.tick();
 	}
 
@@ -70,12 +98,18 @@ public class City extends Building {
 			return;
 
 		g.setColor(Color.white);
-		bigFont = new Font("sitka text", Font.BOLD, (int) (14 * (Erovra2.zoom + 0.5)));
+		bigFont = new Font("sitka text", Font.PLAIN, (int) (15 * (Erovra2.zoom + 0.5)));
+		g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+		g.setRenderingHint(RenderingHints.KEY_ALPHA_INTERPOLATION, RenderingHints.VALUE_ALPHA_INTERPOLATION_QUALITY);
 		g.setFont(bigFont);
 		if (name != null) {
 			int width = g.getFontMetrics(bigFont).stringWidth(name);
 			g.drawString(name, dst[0].x - width / 2, dst[0].y + (int) (24 * Erovra2.zoom));
 		}
+		int seconds = workTimer / 60;
+		int minutes = seconds / 60;
+		if (recruitsLabel != null)
+			recruitsLabel.text = "Recruits: " + minutes + "m " + (seconds - minutes * 60) + "s";
 	}
 
 	public void changeToCapital() {
@@ -87,6 +121,7 @@ public class City extends Building {
 		Apricot.image.overlayBlend(image, nation.color);
 		this.capital = true;
 		new Infantry(position, nation);
+		recruitSwitch.value = true;
 	}
 
 	public void setProducing(boolean producing) {
@@ -95,8 +130,24 @@ public class City extends Building {
 
 	@Override
 	public void remove() {
-		nation.population -= 1;
+		dead = false;
+		deathTicks = 0;
+		health = 100;
 
-		super.remove();
+		nation.unitsLost++;
+		nation.units.remove(id);
+		nation.cities.remove(this);
+		nation.enemyNation.units.put(id, this);
+		nation.population -= 10;
+		nation = nation.enemyNation;
+		nation.cities.add(this);
+		try {
+			image = Apricot.image.loadImage("/res/units/buildings/city.png");
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		Apricot.image.overlayBlend(image, nation.color);
+		for (Building b : buildings)
+			b.remove();
 	}
 }

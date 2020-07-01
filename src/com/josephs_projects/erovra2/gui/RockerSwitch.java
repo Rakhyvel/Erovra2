@@ -80,6 +80,7 @@ public class RockerSwitch extends GUIObject {
 	@Override
 	public void remove() {
 		Erovra2.world.remove(this);
+		label.remove();
 	}
 
 	@Override

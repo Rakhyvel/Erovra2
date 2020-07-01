@@ -52,6 +52,7 @@ public class Nation implements Tickable, Serializable {
 
 	public int coins;
 	public int population;
+	public int mobilized;
 
 	public int cityCost;
 	public int factoryCost;
@@ -110,14 +111,13 @@ public class Nation implements Tickable, Serializable {
 		knownPlanes = new HashSet<>();
 		visitedSpaces = new double[Erovra2.size * 2][Erovra2.size * 2];
 		built = new boolean[Erovra2.size][Erovra2.size];
-		new GUI(this);
 		coins = 40;
-		population = 6;
+		population = 10;
 		cities = new ArrayList<>();
 
-		cityCost = 10;
-		factoryCost = 15;
-		airfieldCost = 15;
+		cityCost = 5;
+		factoryCost = 10;
+		airfieldCost = 10000;
 	}
 
 	public void setCapital(Unit unit) {
@@ -149,12 +149,36 @@ public class Nation implements Tickable, Serializable {
 		if (coins < cityCost)
 			return false;
 		Tuple cityPoint = new Tuple(((int) (position.x / 64)) * 64 + 32, ((int) (position.y / 64)) * 64 + 32);
-		if (Erovra2.terrain.getHeight(cityPoint) < 0.5 || Erovra2.terrain.getHeight(cityPoint) > 1)
+		if (Erovra2.terrain.getHeight(cityPoint) < 0.5 || Erovra2.terrain.getHeight(cityPoint) > 1) {
+			if (ai == null) {
+				Erovra2.gui.messageContainer.addMessage("Cannot build city on water tile!", Erovra2.colorScheme.errorColor);
+			}
 			return false;
-		if (built[(int) cityPoint.x / 64][(int) cityPoint.y / 64])
+		}
+		if (built[(int) cityPoint.x / 64][(int) cityPoint.y / 64]
+				|| enemyNation.built[(int) cityPoint.x / 64][(int) cityPoint.y / 64]) {
+			if (ai == null) {
+				Erovra2.gui.messageContainer.addMessage("Cannot build city on top of another building!",
+						new Color(248, 89, 81));
+			}
 			return false;
+		}
 		for (int i = 0; i < cities.size(); i++) {
 			if (cityPoint.cabDist(cities.get(i).position) < 64 * 3) {
+				if (ai == null) {
+					Erovra2.gui.messageContainer.addMessage("Too close to " + cities.get(i).name + "!",
+							new Color(248, 89, 81));
+				}
+				return false;
+			}
+		}
+		for (int i = 0; i < enemyNation.cities.size(); i++) {
+			if (cityPoint.cabDist(enemyNation.cities.get(i).position) < 64 * 3) {
+				if (ai == null) {
+					enemyNation.cities.get(i).engagedTicks = 1;
+					Erovra2.gui.messageContainer.addMessage("Too close to " + enemyNation.cities.get(i).name + "!",
+							new Color(248, 89, 81));
+				}
 				return false;
 			}
 		}
@@ -162,7 +186,6 @@ public class Nation implements Tickable, Serializable {
 		new City(cityPoint, this);
 		built[(int) cityPoint.x / 64][(int) cityPoint.y / 64] = true;
 		coins -= cityCost;
-		population += 1;
 		cityCost *= 2;
 		return true;
 	}
@@ -171,18 +194,31 @@ public class Nation implements Tickable, Serializable {
 		if (coins < factoryCost)
 			return false;
 		Tuple cityPoint = new Tuple(((int) (position.x / 64)) * 64 + 32, ((int) (position.y / 64)) * 64 + 32);
-		if (Erovra2.terrain.getHeight(cityPoint) < 0.5 || Erovra2.terrain.getHeight(cityPoint) > 1)
+		if (Erovra2.terrain.getHeight(cityPoint) < 0.5 || Erovra2.terrain.getHeight(cityPoint) > 1) {
+			if (ai == null) {
+				Erovra2.gui.messageContainer.addMessage("Cannot build factory on water tile!", Erovra2.colorScheme.errorColor);
+			}
 			return false;
-		if (built[(int) cityPoint.x / 64][(int) cityPoint.y / 64])
+		}
+		if (built[(int) cityPoint.x / 64][(int) cityPoint.y / 64]
+				|| enemyNation.built[(int) cityPoint.x / 64][(int) cityPoint.y / 64]) {
+			if (ai == null) {
+				Erovra2.gui.messageContainer.addMessage("Cannot build factory on another building!", Erovra2.colorScheme.errorColor);
+			}
 			return false;
+		}
 		City nearestCity = canBuildNextToCity(cityPoint);
-		if (nearestCity== null)
+		if (nearestCity == null) {
+			if (ai == null) {
+				Erovra2.gui.messageContainer.addMessage("Must build factory next to city!", Erovra2.colorScheme.errorColor);
+			}
 			return false;
+		}
 
 		new Factory(nearestCity.position.sub(cityPoint).scalar(0.25).add(cityPoint), nearestCity);
 		built[(int) cityPoint.x / 64][(int) cityPoint.y / 64] = true;
 		coins -= factoryCost;
-		factoryCost *= 2;
+		factoryCost += 20;
 		return true;
 	}
 
@@ -192,7 +228,8 @@ public class Nation implements Tickable, Serializable {
 		Tuple cityPoint = new Tuple(((int) (position.x / 64)) * 64 + 32, ((int) (position.y / 64)) * 64 + 32);
 		if (Erovra2.terrain.getHeight(cityPoint) < 0.5 || Erovra2.terrain.getHeight(cityPoint) > 1)
 			return false;
-		if (built[(int) cityPoint.x / 64][(int) cityPoint.y / 64])
+		if (built[(int) cityPoint.x / 64][(int) cityPoint.y / 64]
+				|| enemyNation.built[(int) cityPoint.x / 64][(int) cityPoint.y / 64])
 			return false;
 		City nearestCity = canBuildNextToCity(cityPoint);
 		if (nearestCity == null)
@@ -201,7 +238,7 @@ public class Nation implements Tickable, Serializable {
 		new Airfield(nearestCity.position.sub(cityPoint).scalar(0.25).add(cityPoint), nearestCity);
 		built[(int) cityPoint.x / 64][(int) cityPoint.y / 64] = true;
 		coins -= airfieldCost;
-		airfieldCost *= 2;
+		airfieldCost += 15;
 		return true;
 	}
 

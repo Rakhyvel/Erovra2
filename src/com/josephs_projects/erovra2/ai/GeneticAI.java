@@ -46,7 +46,8 @@ public class GeneticAI implements AI {
 	private final int FIGHTER_REGULAR_ALERT = 4;
 
 	public GeneticAI() {
-		genes = new double[] { 2.56, 500, 1, 20, -20, 0.4, 100, 5, 400, 1, -1, 400, 64, 400, 10000, 1000000000, 64, -1 };
+		genes = new double[] { 2.56, 500, 1, 20, -20, 0.4, 100, 5, 400, 1, -1, 400, 64, 400, 10000, 1000000000, 64,
+				-1 };
 	}
 
 	public GeneticAI(double[] genes) {
@@ -77,6 +78,19 @@ public class GeneticAI implements AI {
 		}
 
 		try {
+			// Tell infantry to build city
+			for (Unit unit : nation.units.values()) {
+				if (unit instanceof Infantry && !infantryBitchBoyTold) {
+					Infantry inf = (Infantry) unit;
+					if (!inf.buildCity) {
+						inf.buildCity = true;
+						inf.buildFactory = true;
+						infantryBitchBoyTold = true;
+						break;
+					}
+				}
+			}
+			
 			// Move units
 			for (Unit unit : nation.units.values()) {
 				if (unit instanceof Fighter) {
@@ -107,12 +121,8 @@ public class GeneticAI implements AI {
 						continue;
 					GroundUnit ground = (GroundUnit) unit;
 
-					if (unit instanceof Infantry && !infantryBitchBoyTold) {
-						Infantry inf = (Infantry) unit;
-						if (inf.buildAirfield || inf.buildCity || inf.buildFactory) {
-							infantryBitchBoyTold = true;
-							coinsSpent += 15;
-						}
+					if (unit instanceof Infantry && !((Infantry) unit).buildCity && !((Infantry) unit).buildFactory) {
+
 					} else if (groundTarget(ground, nation)) {
 						;
 					} else if (ground.getTarget().dist(ground.position) < 1) {
@@ -121,20 +131,16 @@ public class GeneticAI implements AI {
 				}
 			}
 
-			// Tell infantry to build city
-			for (Unit unit : nation.units.values()) {
-				if (!(unit instanceof Infantry))
-					continue;
-				Infantry inf = (Infantry) unit;
-				inf.buildCity = true;
-			}
-
 			if (nation.countFighters() <= nation.knownPlanes.size() * Math.abs(genes[KNOWNFIGHTERS_OFFSET])) {
 				for (Unit unit : nation.units.values()) {
 					// Tell infantry to build airfield
-					if (unit instanceof Infantry) {
+					if (unit instanceof Infantry && !infantryBitchBoyTold) {
 						Infantry inf = (Infantry) unit;
-						inf.buildAirfield = true;
+						if (inf.buildAirfield) {
+							infantryBitchBoyTold = true;
+						} else {
+							inf.buildAirfield = true;
+						}
 					}
 					// Tell airfield to produce fighters
 					if (unit instanceof Airfield) {
@@ -153,14 +159,6 @@ public class GeneticAI implements AI {
 			if (genes[FIGHTING_UNITS_QUOTA] > nation.countFightingUnits()
 					|| nation.countFightingUnits() < nation.knownUnits.size()) {
 				for (Unit unit : nation.units.values()) {
-					// Tell infantry to build factory
-					if (unit instanceof Infantry) {
-						Infantry inf = (Infantry) unit;
-
-						if (inf.engaged)
-							continue;
-						inf.buildFactory = true;
-					}
 
 					// Tell factory to produce
 					if (unit instanceof Factory) {
@@ -211,9 +209,11 @@ public class GeneticAI implements AI {
 			unit.setEngagedTicksReceiver();
 			fighter.setEngagedTicks();
 			if (unit instanceof Building) {
-				nation.visitedSpaces[(int) unit.position.x / 32][(int) unit.position.y / 32] = genes[FIGHTER_BUILDING_ALERT];
+				nation.visitedSpaces[(int) unit.position.x / 32][(int) unit.position.y
+						/ 32] = genes[FIGHTER_BUILDING_ALERT];
 			} else {
-				nation.visitedSpaces[(int) unit.position.x / 32][(int) unit.position.y / 32] = genes[FIGHTER_REGULAR_ALERT];
+				nation.visitedSpaces[(int) unit.position.x / 32][(int) unit.position.y
+						/ 32] = genes[FIGHTER_REGULAR_ALERT];
 			}
 		}
 

@@ -15,8 +15,10 @@ import com.josephs_projects.erovra2.projectiles.Shell;
 import com.josephs_projects.erovra2.units.Unit;
 import com.josephs_projects.erovra2.units.UnitType;
 import com.josephs_projects.erovra2.units.buildings.Building;
+import com.josephs_projects.erovra2.units.buildings.City;
 
 public abstract class GroundUnit extends Unit {
+	public boolean stuckIn = false;
 
 	public GroundUnit(Tuple position, Nation nation, UnitType type) {
 		super(position, nation, type);
@@ -24,6 +26,7 @@ public abstract class GroundUnit extends Unit {
 		projectiles.add(Shell.class);
 		projectiles.add(GroundTargetBullet.class);
 		this.image = Apricot.image.overlayBlendOutOfPlace(type.image1, nation.color);
+		nation.mobilized += 5;
 	}
 
 	public GroundUnit(Tuple position, Nation nation, UnitType type, int id) {
@@ -48,18 +51,16 @@ public abstract class GroundUnit extends Unit {
 	public void move() {
 		// Check to see if direction is good before moving
 		// Definitely could be fixed, make turning smarter
-		if (Math.abs(direction - getRadian(position.sub(getTarget()))) > 0.2 * type.speed) {
-			if (direction > getRadian(position.sub(getTarget()))) {
+		if (getAlignment(lookat) > 0.2 * type.speed) {
+			if (direction > getRadian(position.sub(lookat))) {
 				direction -= 0.2 * type.speed;
 			} else {
 				direction += 0.2 * type.speed;
 			}
 			return;
 		}
-		if (engaged)
-			return;
 
-		if (position.dist(getTarget()) < 1 || velocity.magnitude() < 10)
+		if (position.dist(getTarget()) < 1 || velocity.magnitude() < 10 || stuckIn)
 			return;
 
 		if (velocity == null)
@@ -77,89 +78,27 @@ public abstract class GroundUnit extends Unit {
 	}
 
 	/**
-	 * Checks for nearby unvisited/alert tiles
-	 */
-	@Override
-	public boolean target() {
-		// Search for closest unvisited tile
-		Tuple closestTile = null;
-		double bestScore = Double.POSITIVE_INFINITY;
-		for (int y = 0; y < Erovra2.size * 2; y++) {
-			for (int x = 0; x < Erovra2.size * 2; x++) {
-				Tuple point = new Tuple(x * 32 + 16, y * 32 + 16);
-				// Tile must be unvisited
-				if (nation.visitedSpaces[x][y] > 0)
-					continue;
-
-				double score = position.dist(point) * nation.visitedSpaces[x][y];
-
-				// Must be land
-				if (Erovra2.terrain.getHeight(point) <= 0.5)
-					continue;
-
-				// Prefer alerted tiles over uncertain tiles
-//				if (nation.visitedSpaces[x][y] <= -1) {
-//					score *= -1 / (Erovra2.size * 64 * nation.visitedSpaces[x][y]);
-//				}
-
-//				if (nation.countFightingUnits() < nation.getOther() && point.dist(nation.capital.position) > 100)
-//					continue;
-
-				// Must have direct line of sight to tile center
-				if (score < bestScore && lineOfSight(point)) {
-					bestScore = score;
-					closestTile = point;
-				}
-			}
-		}
-
-		// Set target to closest tile if there is
-		if (closestTile != null) {
-			setTarget(closestTile);
-			return true;
-		}
-
-		// Target not set, return false
-		return false;
-	}
-
-	/**
-	 * Chooses a random target, if that target is on land, sets units target to that
-	 * point. No side effects if not.
-	 */
-	public void randomTarget() {
-		double randX = Apricot.rand.nextDouble() - 0.5;
-		double randY = Apricot.rand.nextDouble() - 0.5;
-		Tuple newTarget = position.add(new Tuple(randX, randY).normalize().scalar(64));
-		if (nation.countFightingUnits() < nation.getOther() && newTarget.dist(nation.capital.position) > 400) {
-			setTarget(nation.capital.position);
-			return;
-		}
-		if (Erovra2.terrain.getHeight(newTarget) > 0.5 && Erovra2.terrain.getHeight(newTarget) < 1)
-			setTarget(newTarget);
-	}
-
-	/**
 	 * Checks nearby enemy units, shoots a bullet if there are any. - Prefers other
 	 * GroundUnits over Buildings - sets visitedSpace of closest enemy to alert -
 	 * Engaged is true iff enemy units found
 	 */
 	@Override
 	public void attack() {
+		stuckIn = false;
 		// Find closest enemy unit
 		Unit closest = null;
-		double closestDistance = Double.POSITIVE_INFINITY;
+		double closestDistance = 68;
 		boolean onlyBuildings = true;
 		List<Unit> units = new ArrayList<Unit>(nation.enemyNation.units.values());
 		for (int i = 0; i < units.size(); i++) {
 			Unit unit = units.get(i);
-			if (!(unit instanceof GroundUnit || unit instanceof Building)) {
+			if (!(unit instanceof GroundUnit || unit instanceof City)) {
 				continue;
 			}
 			double distance = unit.position.dist(position);
 			if (unit.dead)
 				continue;
-			if (distance > 48)
+			if (distance > 68)
 				continue;
 			if (unit instanceof Building) {
 				int x = (int) unit.position.x / 32;
@@ -167,11 +106,8 @@ public abstract class GroundUnit extends Unit {
 				nation.visitedSpaces[x][y] = -20;
 			}
 			// Prefer GroundUnits over Buildings
-			if (distance < closestDistance) {
-				if (unit instanceof Building) {
-					if (!onlyBuildings)
-						continue;
-				} else {
+			if (distance < closestDistance || onlyBuildings && unit instanceof GroundUnit) {
+				if (unit instanceof GroundUnit) {
 					onlyBuildings = false;
 				}
 
@@ -191,14 +127,21 @@ public abstract class GroundUnit extends Unit {
 			setEngaged(false);
 			return;
 		}
-		// Shoot enemy units if found
+		if (closest.type != UnitType.CITY && closest.position.dist(position) < 48) {
+			stuckIn = true;
+			setTarget(position);
+		}
+		if (getTarget().cabDist(position) < 1 || stuckIn) {
+			lookat.copy(closest.position);
+		}
 		setEngaged(true);
 		setEngagedTicks();
-		if ((Erovra2.apricot.ticks - birthTick) % 60 == 0) {
-			setTarget(closest.position);
-			new Bullet(new Tuple(position),
-					closest.position.sub(position.add(new Tuple(Math.random() * 20 - 10, Math.random() * 20 - 10))),
-					nation, type.attack * (Erovra2.terrain.getHeight(position) / 10.0 + 37 / 40.0));
+
+		// Shoot enemy units if found
+		double alignment = getAlignment(closest.position);
+		if ((Erovra2.apricot.ticks - birthTick) % 60 == 0 && alignment < 0.2 * type.speed) {
+			new Bullet(new Tuple(position), closest.position.sub(position), nation,
+					type.attack * (Erovra2.terrain.getHeight(position) / 10.0 + 37 / 40.0));
 		}
 		int x = (int) closest.position.x / 32;
 		int y = (int) closest.position.y / 32;
@@ -215,6 +158,13 @@ public abstract class GroundUnit extends Unit {
 			if (y < (Erovra2.size * 2) - 1 && position.dist(closest.position.add(new Tuple(0, 32))) > 48)
 				nation.visitedSpaces[x][y + 1] = -20;
 		}
+	}
+
+	private double getAlignment(Tuple point) {
+		double first = Math.abs(direction - getRadian(position.sub(point)));
+		double second = Math.abs(direction - getRadian(position.sub(point)) - 2 * Math.PI);
+		double third = Math.abs(direction - getRadian(position.sub(point)) + 2 * Math.PI);
+		return Math.min(first, Math.min(third, second));
 	}
 
 	/**
@@ -250,15 +200,17 @@ public abstract class GroundUnit extends Unit {
 				if (Erovra2.apricot.mouse.position.x < Erovra2.terrain.minimap.getWidth()
 						&& Erovra2.apricot.mouse.position.y > Erovra2.apricot.height()
 								- Erovra2.terrain.minimap.getHeight()) {
-					int y = (int) Erovra2.apricot.mouse.position.y - (Erovra2.apricot.height()
-							- Erovra2.terrain.minimap.getHeight());
+					int y = (int) Erovra2.apricot.mouse.position.y
+							- (Erovra2.apricot.height() - Erovra2.terrain.minimap.getHeight());
 					double scale = Erovra2.terrain.size / (double) Erovra2.terrain.minimap.getWidth();
 					setTarget(new Tuple(Erovra2.apricot.mouse.position.x * scale, y * scale));
 				} else {
 					setTarget(Erovra2.terrain.getMousePosition());
+					lookat.copy(getTarget());
 				}
 				selected = null;
-			} else if (hovered && selected != this) {
+			} else if (hovered && selected != this
+					&& (selected == null || (selected != null && selected.getRenderOrder() < getRenderOrder()))) {
 				focused = null;
 				selected = this;
 			}
@@ -293,6 +245,12 @@ public abstract class GroundUnit extends Unit {
 		boolean checkLR = Math.abs(sin * dx + cos * dy) <= 16;
 		boolean checkTB = Math.abs(cos * dx - sin * dy) <= 8;
 		return checkLR && checkTB;
+	}
+	
+	@Override
+	public void remove() {
+		nation.mobilized -= type.population;
+		super.remove();
 	}
 
 }

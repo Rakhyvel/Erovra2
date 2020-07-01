@@ -3,26 +3,31 @@ package com.josephs_projects.erovra2;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics2D;
+import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 import com.josephs_projects.apricotLibrary.Apricot;
+import com.josephs_projects.apricotLibrary.Tuple;
 import com.josephs_projects.apricotLibrary.interfaces.Renderable;
+import com.josephs_projects.erovra2.gui.MessageContainer;
 import com.josephs_projects.erovra2.units.Unit;
 
 public class GUI implements Renderable {
 	Nation nation;
-	Font bigFont = new Font("Arial", Font.PLAIN, 24);
-	Font smallFont = new Font("Arial", Font.PLAIN, 16);
+	Font bigFont = new Font("Arial", Font.PLAIN, 18);
 	BufferedImage coin;
+	BufferedImage population;
+	public MessageContainer messageContainer = new MessageContainer(new Tuple());
 
 	public GUI(Nation nation) {
 		this.nation = nation;
 		Erovra2.world.add(this);
 		try {
 			coin = Apricot.image.loadImage("/res/coin.png");
+			population = Apricot.image.loadImage("/res/population.png");
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -43,11 +48,15 @@ public class GUI implements Renderable {
 			}
 			g.drawString("Ping: " + String.valueOf((int) Erovra2.net.ping), 768 - 60, 28);
 		}
+		messageContainer.position.x = Erovra2.apricot.width() - 240;
+		messageContainer.position.y = Erovra2.apricot.height() - 155;
+
 		// Draw minimap
 		g.setColor(Erovra2.colorScheme.borderColor);
 		g.fillRect(0, Erovra2.apricot.height() - Erovra2.terrain.minimap.getHeight() - 2,
 				Erovra2.terrain.minimap.getHeight() + 2, Erovra2.terrain.minimap.getHeight() + 2);
 		g.drawImage(Erovra2.terrain.minimap, 0, Erovra2.apricot.height() - Erovra2.terrain.minimap.getHeight(), null);
+		g.drawImage(Erovra2.terrain.oremap, 0, Erovra2.apricot.height() - Erovra2.terrain.minimap.getHeight(), null);
 
 		// Draw friendly minimap units
 		List<Unit> units = new ArrayList<Unit>(nation.units.values());
@@ -77,12 +86,26 @@ public class GUI implements Renderable {
 	}
 
 	private void drawNationInfo(Graphics2D g) {
+		// Draw thingy
 		g.setColor(Erovra2.colorScheme.backgroundColor);
-		g.fillRect(0, 0, 100, 32);
-		g.setColor(Erovra2.colorScheme.textColor);
-		g.setFont(bigFont);
-		g.drawString(String.valueOf(nation.coins), 30, 24);
-		g.drawImage(coin, 5, 5, null);
+		g.fillRect(0, 0, 140, 61);
+
+		// Set font stuff
+		g.setFont(new Font("Trebuchet", Font.PLAIN, 18));
+		g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+		g.setRenderingHint(RenderingHints.KEY_ALPHA_INTERPOLATION, RenderingHints.VALUE_ALPHA_INTERPOLATION_QUALITY);
+		g.setColor(Color.white);
+
+		// Draw coin
+		g.drawString(String.valueOf(nation.coins), 36, 25);
+		g.drawImage(coin, 8, 8, null);
+
+		// Draw population
+		if(nation.mobilized >= nation.population) {
+			g.setColor(Erovra2.colorScheme.errorColor);
+		}
+		g.drawString(addSuffix(nation.mobilized) + " / " + addSuffix(nation.population), 36, 52);
+		g.drawImage(population, 8, 35, null);
 	}
 
 	private void drawDashboard(Graphics2D g) {
@@ -102,6 +125,26 @@ public class GUI implements Renderable {
 	@Override
 	public void remove() {
 
+	}
+	
+	public String addSuffix(int population) {
+		int i = 0;
+		while(population >= 1000) {
+			population /= 1000;
+			i++;
+		}
+		switch(i) {
+		case 0:
+			return String.valueOf(population) + "k";
+		case 1:
+			return String.valueOf(population) + "m";
+		case 2:
+			return String.valueOf(population) + "b";
+		case 3:
+			return String.valueOf(population) + "t";
+		default:
+			return String.valueOf(population);
+		}
 	}
 
 }

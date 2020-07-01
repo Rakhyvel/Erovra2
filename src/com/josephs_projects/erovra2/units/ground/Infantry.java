@@ -4,6 +4,7 @@ import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Point;
+import java.awt.RenderingHints;
 import java.awt.geom.AffineTransform;
 
 import com.josephs_projects.apricotLibrary.Tuple;
@@ -18,12 +19,14 @@ import com.josephs_projects.erovra2.units.UnitType;
 public class Infantry extends GroundUnit implements Updatable {
 	private static Point[] decoration = new Point[4];
 	private static Point[] dst = new Point[4];
-	
+
 	private GUIWrapper actions = new GUIWrapper(new Tuple(0, 0));
+	private GUIWrapper actionButtons = new GUIWrapper(new Tuple(0, 0));
 	private Label actionLabel = new Label("Actions", Erovra2.colorScheme);
 	private Button buildCityButton = new Button("Build city", 176, 30, Erovra2.colorScheme);
 	private Button buildFactoryButton = new Button("Build factory", 176, 30, Erovra2.colorScheme);
 	private Button buildAirfieldButton = new Button("Build airfield", 176, 30, Erovra2.colorScheme);
+	private Button testSoilButton = new Button("Test soil", 176, 30, Erovra2.colorScheme);
 
 	public boolean buildFactory = false;
 	public boolean buildAirfield = false;
@@ -44,15 +47,19 @@ public class Infantry extends GroundUnit implements Updatable {
 		super(position, nation, UnitType.INFANTRY);
 
 		actions.addGUIObject(actionLabel);
-		actions.addGUIObject(buildCityButton);
-		actions.addGUIObject(buildFactoryButton);
-		actions.addGUIObject(buildAirfieldButton);
-		
+		actions.addGUIObject(actionButtons);
+		actionButtons.addGUIObject(buildCityButton);
+		actionButtons.addGUIObject(buildFactoryButton);
+		actionButtons.addGUIObject(buildAirfieldButton);
+		actionButtons.addGUIObject(testSoilButton);
+
 		focusedOptions.addGUIObject(actions);
 		focusedOptions.renderOrder = Erovra2.GUI_LEVEL;
 		actions.renderOrder = Erovra2.GUI_LEVEL;
 
-		infoLabel.text = nation.registerNewDivisionOrdinal(type) + " Infantry Division";
+		infoLabel.text = nation.registerNewDivisionOrdinal(type) + " Infantry Legion";
+		actionButtons.padding = 0;
+		actionButtons.margin = 0;
 	}
 
 	public Infantry(Tuple position, Nation nation, int id) {
@@ -67,6 +74,20 @@ public class Infantry extends GroundUnit implements Updatable {
 			nation.buyFactory(position);
 		} else if (text.contains("airfield")) {
 			nation.buyAirfield(position);
+		} else if (text.contains("soil")) {
+			double ore = Erovra2.terrain.getOre(position);
+			if (ore <= 0.5833) {
+				Erovra2.gui.messageContainer.addMessage("Ore test: None", Color.white);
+			} else if (ore <= 0.667) {
+				Erovra2.gui.messageContainer.addMessage("Ore test: Poor", Color.white);
+			} else if (ore <= 0.75) {
+				Erovra2.gui.messageContainer.addMessage("Ore test: Fair", Color.white);
+			} else if (ore <= 0.833) {
+				Erovra2.gui.messageContainer.addMessage("Ore test: Good", Color.white);
+			} else {
+				Erovra2.gui.messageContainer.addMessage("Ore test: Excellent", Color.white);
+			}
+			Erovra2.terrain.testSoil(position);
 		}
 	}
 
@@ -78,10 +99,10 @@ public class Infantry extends GroundUnit implements Updatable {
 		if (nation == Erovra2.enemy && engagedTicks <= 0 && !dead)
 			return;
 
-		buildAirfieldButton.label.text = "Build airfield (" + nation.airfieldCost + ")";
-		buildCityButton.label.text = "Build city (" + nation.cityCost + ")";
-		buildFactoryButton.label.text = "Build factory (" + nation.factoryCost + ")";
-		
+		buildAirfieldButton.label.text = "Build airfield " + nation.airfieldCost + "&c";
+		buildCityButton.label.text = "Build city " + nation.cityCost + "&c";
+		buildFactoryButton.label.text = "Build factory " + nation.factoryCost + "&c";
+
 		buildAirfieldButton.active = nation.coins >= nation.airfieldCost;
 		buildCityButton.active = nation.coins >= nation.cityCost;
 		buildFactoryButton.active = nation.coins >= nation.factoryCost;
@@ -89,121 +110,17 @@ public class Infantry extends GroundUnit implements Updatable {
 		float deathOpacity = (float) Math.min(1, Math.max(0, (60 - deathTicks) / 60.0));
 		g.setColor(new Color(0, 0, 0, deathOpacity));
 		g.setStroke(new BasicStroke((float) (Erovra2.zoom + 1), BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+		if (Erovra2.zoom > 1.5) {
+			g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+		} else {
+			g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
+		}
 		g.drawLine(dst[0].x, dst[0].y, dst[1].x, dst[1].y);
 		g.drawLine(dst[0].x, dst[0].y, dst[2].x, dst[2].y);
 		g.drawLine(dst[0].x, dst[0].y, dst[3].x, dst[3].y);
 		g.drawLine(dst[1].x, dst[1].y, dst[2].x, dst[2].y);
 		g.drawLine(dst[1].x, dst[1].y, dst[3].x, dst[3].y);
 		g.drawLine(dst[2].x, dst[2].y, dst[3].x, dst[3].y);
+		g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
 	}
-
-	// AI METHODS
-	public void tick() {
-		super.tick();
-		if (nation.ai != null) {
-			if (buildFactory && nation.coins >= nation.factoryCost) {
-				if (!nation.buyFactory(position)) {
-					searchForFactory();
-				} else {
-					buildFactory = false;
-				}
-				return;
-			}
-			if (buildCity && nation.coins >= nation.cityCost) {
-				if (!nation.buyCity(position)) {
-					searchForCity();
-				} else {
-					buildCity = false;
-				}
-				return;
-			}
-			if (buildAirfield && nation.coins >= nation.airfieldCost) {
-				if (!nation.buyAirfield(position)) {
-					searchForFactory();
-				} else {
-					buildAirfield = false;
-				}
-				return;
-			}
-		}
-	}
-
-	public boolean searchForFactory() {
-		double tempDistance = Double.POSITIVE_INFINITY;
-		Tuple tempTarget = null;
-		for (int y = 0; y < Erovra2.size; y++) {
-			for (int x = 0; x < Erovra2.size; x++) {
-				if (nation.built[x][y])
-					continue;
-
-				// Only go to empty squares
-				Tuple point = new Tuple(x * 64 + 32, y * 64 + 32);
-				if (nation.canBuildNextToCity(point) == null)
-					continue;
-
-				if (Erovra2.terrain.getHeight(point) < 0.5)
-					continue;
-
-				double distance = position.dist(point);
-				if (distance > tempDistance)
-					continue;
-
-				if (!lineOfSight(point))
-					continue;
-
-				tempTarget = point;
-				tempDistance = distance;
-			}
-		}
-
-		if (tempTarget != null) {
-			setTarget(tempTarget);
-			return true;
-		}
-		return false;
-	}
-
-	public boolean searchForCity() {
-		double tempDistance = Double.POSITIVE_INFINITY;
-		Tuple tempTarget = null;
-		for (int y = 0; y < Erovra2.size; y++) {
-			for (int x = 0; x < Erovra2.size; x++) {
-				if (nation.built[x][y])
-					continue;
-
-				// Only go to empty squares
-				Tuple point = new Tuple(x * 64 + 32, y * 64 + 32);
-				boolean exitFlag = false;
-				for (int i = 0; i < nation.cities.size(); i++) {
-					if (point.cabDist(nation.cities.get(i).position) < 64 * 3) {
-						exitFlag = true;
-						break;
-					}
-				}
-
-				if (exitFlag)
-					continue;
-
-				if (Erovra2.terrain.getHeight(point) < 0.5)
-					continue;
-
-				double distance = position.dist(point) - Erovra2.terrain.getHeight(point) * 10;
-				if (distance > tempDistance)
-					continue;
-
-				if (!lineOfSight(point))
-					continue;
-
-				tempTarget = point;
-				tempDistance = distance;
-			}
-		}
-
-		if (tempTarget != null) {
-			setTarget(tempTarget);
-			return true;
-		}
-		return false;
-	}
-
 }

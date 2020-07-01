@@ -2,6 +2,7 @@ package com.josephs_projects.erovra2.units;
 
 import java.awt.AlphaComposite;
 import java.awt.Graphics2D;
+import java.awt.RenderingHints;
 import java.awt.event.KeyEvent;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
@@ -27,6 +28,7 @@ import com.josephs_projects.erovra2.net.NetworkAdapter.HitUnit;
 import com.josephs_projects.erovra2.net.NetworkAdapter.KillUnit;
 import com.josephs_projects.erovra2.net.NetworkAdapter.RemoveUnit;
 import com.josephs_projects.erovra2.projectiles.Projectile;
+import com.josephs_projects.erovra2.projectiles.ProjectileType;
 import com.josephs_projects.erovra2.units.air.Attacker;
 import com.josephs_projects.erovra2.units.air.Fighter;
 import com.josephs_projects.erovra2.units.air.Plane;
@@ -41,6 +43,7 @@ import com.josephs_projects.erovra2.units.ground.Infantry;
 
 public abstract class Unit implements Tickable, Renderable, InputListener, Updatable {
 	public Tuple position;
+	public Tuple lookat;
 	public Tuple velocity;
 	private Tuple target;
 	public double a = 0;
@@ -80,6 +83,7 @@ public abstract class Unit implements Tickable, Renderable, InputListener, Updat
 	public Unit(Tuple position, Nation nation, UnitType type) {
 		this.position = new Tuple(position);
 		this.target = new Tuple(position);
+		this.lookat = new Tuple(position);
 		this.nation = nation;
 		this.type = type;
 		birthTick = Erovra2.apricot.ticks;
@@ -185,9 +189,12 @@ public abstract class Unit implements Tickable, Renderable, InputListener, Updat
 
 		if (hitTimer > 0 && !dead) {
 			g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_ATOP, hitTimer / 18.0f));
+			g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 			g.drawImage(hit, getAffineTransform(hit), null);
-		} else if (((hovered && selected == null&& !Erovra2.apricot.keyboard.keyDown(KeyEvent.VK_CONTROL)) || selected == this) && type != UnitType.AIRFIELD
-				&& type != UnitType.FACTORY && type != UnitType.CITY) {
+		} else if (((hovered && selected == null && !Erovra2.apricot.keyboard.keyDown(KeyEvent.VK_CONTROL))
+				|| selected == this) && type != UnitType.AIRFIELD && type != UnitType.FACTORY
+				&& type != UnitType.CITY) {
+			g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 			g.drawImage(hit, getAffineTransform(hit), null);
 		}
 		float deathOpacity = (float) Math.min(1, Math.max(0, (60 - deathTicks) / 60.0));
@@ -211,7 +218,8 @@ public abstract class Unit implements Tickable, Renderable, InputListener, Updat
 		if (e == InputEvent.MOUSE_RIGHT_RELEASED && !Erovra2.apricot.keyboard.keyDown(KeyEvent.VK_CONTROL)) {
 			if (focused == this) {
 				focused = null;
-			} else if (hovered && focused != this) {
+			} else if (hovered && focused != this
+					&& (focused == null || (focused != null && focused.getRenderOrder() < getRenderOrder()))) {
 				focused = this;
 			}
 		}
@@ -254,9 +262,20 @@ public abstract class Unit implements Tickable, Renderable, InputListener, Updat
 				Projectile p = projectiles.get(i);
 				if (!this.projectiles.contains(p.getClass()))
 					continue;
-				if (p.dangerous && boundingBox(p.position)) {
-					health -= p.attack / (type.defense * (Erovra2.terrain.getHeight(position) / 10.0 + 37 / 40.0));
+				boolean checkHealth = false;
+				if (p.type == ProjectileType.SHELL) {
+					if (p.dangerous && p.position.dist(position) < 64) {
+						health += p.attack / 64.0 * p.position.dist(position) - p.attack;
+						checkHealth = true;
+					}
+				} else {
+					if (p.dangerous && boundingBox(p.position)) {
+						health -= p.attack / (type.defense * (Erovra2.terrain.getHeight(position) / 10.0 + 37 / 40.0));
+						checkHealth = true;
+					}
+				}
 
+				if (checkHealth) {
 					if (this instanceof Building) {
 						nation.visitedSpaces[(int) p.position.x / 32][(int) p.position.y / 32] = -100;
 					} else {
@@ -268,8 +287,8 @@ public abstract class Unit implements Tickable, Renderable, InputListener, Updat
 					if (nation == Erovra2.home && Erovra2.net != null) {
 						Erovra2.net.opQ.add(new HitUnit(id));
 					}
-
-					p.remove();
+					if (p.type != ProjectileType.SHELL)
+						p.remove();
 					if (health < 0 && (Erovra2.net == null || nation == Erovra2.home)) {
 						dead = true;
 						if (Erovra2.net != null) {
@@ -337,6 +356,7 @@ public abstract class Unit implements Tickable, Renderable, InputListener, Updat
 	public void setTarget(Tuple point) {
 		double distance = point.dist(target);
 		target.copy(point);
+		lookat.copy(point);
 		velocity = getTarget().sub(position);
 		if ((distance > 2 || this instanceof Plane) && Erovra2.net != null && nation == Erovra2.home)
 			Erovra2.net.updatedPositions.put(id, this);

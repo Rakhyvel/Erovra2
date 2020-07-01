@@ -67,10 +67,10 @@ public class Plane extends Unit {
 	}
 
 	@Override
-	public void render(Graphics2D g) {
-		if (nation == Erovra2.enemy && engagedTicks <= 0 && !dead)
+	public void render(Graphics2D g) {		
+		if(engagedTicks <= 0)
 			return;
-
+		
 		int ticks = Erovra2.apricot.ticks / 2;
 //		direction -= Math.sin(ticks * 0.01) * 0.01;
 		float deathOpacity = (float) ((60 - deathTicks) / 60.0);
@@ -85,6 +85,9 @@ public class Plane extends Unit {
 			g.drawImage(center, getAffineTransform(center), null);
 		}
 
+		if(nation == Erovra2.enemy)
+			return;
+		
 		if (hitTimer > 0 && !dead) {
 			g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_ATOP, hitTimer / 18.0f));
 			g.drawImage(hit, getAffineTransform(hit), null);

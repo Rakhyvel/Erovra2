@@ -52,8 +52,8 @@ public class Building extends Unit {
 
 	@Override
 	public boolean boundingBox(Tuple point) {
-		return point.x < position.x + 16 && point.y < position.y + 16 && point.x > position.x - 16
-				&& point.y > position.y - 16;
+		return point.x < position.x + 6 && point.y < position.y + 6 && point.x > position.x - 6
+				&& point.y > position.y - 6;
 	}
 
 }

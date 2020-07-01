@@ -1,7 +1,10 @@
 package com.josephs_projects.erovra2.units.buildings;
 
+import java.awt.Color;
 import java.awt.Graphics2D;
+import java.io.IOException;
 
+import com.josephs_projects.apricotLibrary.Apricot;
 import com.josephs_projects.apricotLibrary.Tuple;
 import com.josephs_projects.erovra2.Erovra2;
 import com.josephs_projects.erovra2.Nation;
@@ -20,12 +23,13 @@ public class Factory extends Building {
 	private int totalWorkTimer = 0;
 	private int coinRefund = 0;
 	private int oreRefund = 0;
-	
+
 	private Label currentOrderLabel = new Label("Order: None", Erovra2.colorScheme);
 	private RockerSwitch autoSwitch = new RockerSwitch("Auto order ", 40, 20, Erovra2.colorScheme);
 	private Label orderActionLabel = new Label("Actions", Erovra2.colorScheme);
 
 	private GUIWrapper actions = new GUIWrapper(new Tuple(0, 0));
+	private GUIWrapper actionButtons = new GUIWrapper(new Tuple(0, 0));
 	private Label actionLabel = new Label("Actions", Erovra2.colorScheme);
 	private Button buildCavalryButton = new Button("Order cavalry", 176, 30, Erovra2.colorScheme);
 	private Button buildArtilleryButton = new Button("Order artillery", 176, 30, Erovra2.colorScheme);
@@ -40,16 +44,18 @@ public class Factory extends Building {
 	public Factory(Tuple position, City homeCity) {
 		super(position, homeCity.nation, UnitType.FACTORY);
 		actions.addGUIObject(actionLabel);
-		actions.addGUIObject(buildCavalryButton);
-		actions.addGUIObject(buildArtilleryButton);
-		actions.addGUIObject(buildFighterButton);
-		actions.addGUIObject(buildAttackerButton);
-		actions.addGUIObject(buildBomberButton);
+		actions.addGUIObject(actionButtons);
+		actionButtons.addGUIObject(buildCavalryButton);
+		actionButtons.addGUIObject(buildArtilleryButton);
+		actionButtons.addGUIObject(buildFighterButton);
+		actionButtons.addGUIObject(buildAttackerButton);
+		actionButtons.addGUIObject(buildBomberButton);
 
 		orderActions.addGUIObject(orderActionLabel);
 		orderActions.addGUIObject(cancelOrderButton);
 
 		this.homeCity = homeCity;
+		homeCity.buildings.add(this);
 		infoLabel.text = homeCity.name + " Factory";
 		info.addGUIObject(currentOrderLabel);
 		info.addGUIObject(autoSwitch);
@@ -59,6 +65,8 @@ public class Factory extends Building {
 		focusedOptions.addGUIObject(orderActions);
 
 		currentOrderLabel.fontSize = 17;
+		actionButtons.padding = 0;
+		actionButtons.margin = 0;
 	}
 
 	public Factory(Tuple position, Nation nation, int id) {
@@ -67,11 +75,15 @@ public class Factory extends Building {
 
 	@Override
 	public void tick() {
-		if ((Erovra2.net == null || nation == Erovra2.home) && workTimer == 0) {
+		if ((Erovra2.net == null || homeCity.nation == Erovra2.home) && workTimer == 0) {
 			if (order == UnitType.ARTILLERY) {
-				new Artillery(position, nation);
+				new Artillery(position, homeCity.nation);
 			} else if (order == UnitType.CAVALRY) {
-				new Cavalry(position, nation);
+				new Cavalry(position, homeCity.nation);
+			}
+			if (order != null && nation.ai == null) {
+				Erovra2.gui.messageContainer.addMessage("Order delivered at " + homeCity.name + " factory!",
+						nation.color);
 			}
 			if (autoSwitch != null && autoSwitch.value) {
 				startProduction(order);
@@ -79,15 +91,24 @@ public class Factory extends Building {
 				order = null;
 			}
 		}
-		workTimer--;
+		if (order != null && nation.mobilized <= nation.population - order.population)
+			workTimer--;
+		if (order != null && nation.mobilized > nation.population - order.population) {
+			autoSwitch.value = false;
+		}
 
 		super.tick();
 	}
 
 	@Override
 	public void render(Graphics2D g) {
+		if (homeCity != null) {
+			engagedTicks = homeCity.engagedTicks;
+		} else {
+			return;
+		}
 		super.render(g);
-		if (nation == Erovra2.enemy && engagedTicks <= 0 && !dead)
+		if (homeCity.nation == Erovra2.enemy && engagedTicks <= 0 && !dead)
 			return;
 		if (currentOrderLabel == null)
 			return;
@@ -95,11 +116,11 @@ public class Factory extends Building {
 		orderActions.setShown(order != null && focusedOptions.shown);
 		if (order == null) {
 			currentOrderLabel.text = "Order: None";
-			buildCavalryButton.label.text = "Order cavalry 15c 5o";
-			buildArtilleryButton.label.text = "Order artillery 15c 5o";
-			
-			buildCavalryButton.active = nation.coins >= 15 && homeCity.oreMined >= 5;
-			buildArtilleryButton.active = nation.coins >= 15 && homeCity.oreMined >= 5;
+			buildCavalryButton.label.text = "Order cavalry 15&c5&o";
+			buildArtilleryButton.label.text = "Order artillery 15&c5&o";
+
+			buildCavalryButton.active = homeCity.nation.coins >= 15 && homeCity.oreMined >= 5;
+			buildArtilleryButton.active = homeCity.nation.coins >= 15 && homeCity.oreMined >= 5;
 			buildFighterButton.active = false;
 			buildAttackerButton.active = false;
 			buildBomberButton.active = false;
@@ -120,35 +141,57 @@ public class Factory extends Building {
 		} else if (text.contains("Order artillery")) {
 			startProduction(UnitType.ARTILLERY);
 		} else if (text.contains("Cancel order")) {
-			nation.coins += (int)(coinRefund * (double)(workTimer) / totalWorkTimer);
-			homeCity.oreMined += (int)(oreRefund * (double)(workTimer) / totalWorkTimer);
+			homeCity.nation.coins += (int) (coinRefund * (double) (workTimer) / totalWorkTimer);
+			homeCity.oreMined += (int) (oreRefund * (double) (workTimer) / totalWorkTimer);
 			order = null;
 		}
 	}
 
 	public void startProduction(UnitType order) {
-		if (nation.population < nation.countFightingUnits()) {
+		if (homeCity.nation.coins < 15) {
 			this.order = null;
-			return;
-		}
-		if (nation.coins < 15) {
-			this.order = null;
+			if (nation.ai == null) {
+				Erovra2.gui.messageContainer.addMessage(
+						homeCity.name + " factory cannot fulfill order due to lack of coins!", new Color(248, 89, 81));
+			}
 			return;
 		}
 		if (homeCity.oreMined < 5) {
 			this.order = null;
+			if (nation.ai == null) {
+				Erovra2.gui.messageContainer.addMessage(
+						homeCity.name + " factory cannot fulfill order due to lack of ore!", new Color(248, 89, 81));
+			}
 			return;
 		}
 		this.order = order;
 		workTimer = 6000;
 		totalWorkTimer = 6000;
-		nation.coins -= 15;
+		homeCity.nation.coins -= 15;
 		homeCity.oreMined -= 5;
 		coinRefund = 15;
 		oreRefund = 5;
 	}
 
 	public boolean producing() {
-		return workTimer >= 0;
+		return order != null;
+	}
+
+	@Override
+	public void detectHit() {
+		// Factories cannot be destroyed by groundunits
+	}
+
+	@Override
+	public void remove() {
+		nation.units.remove(id);
+		nation.enemyNation.units.put(id, this);
+		nation = nation.enemyNation;
+		try {
+			image = Apricot.image.loadImage("/res/units/buildings/" + type.name + ".png");
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		Apricot.image.overlayBlend(image, nation.color);
 	}
 }

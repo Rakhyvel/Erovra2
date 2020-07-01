@@ -65,7 +65,7 @@ public class ControlAI implements AI {
 					} else if (ground.target()) {
 						;
 					} else if (ground.getTarget().dist(ground.position) < 1) {
-						ground.randomTarget();
+//						ground.randomTarget();
 					}
 				}
 			}
