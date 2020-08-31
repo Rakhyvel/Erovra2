@@ -30,7 +30,6 @@ public class DeathMarker implements Renderable {
 
 	@Override
 	public void remove() {
-		// TODO Auto-generated method stub
 		
 	}
 

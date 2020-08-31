@@ -8,6 +8,7 @@ import com.josephs_projects.erovra2.Erovra2;
 import com.josephs_projects.erovra2.Nation;
 import com.josephs_projects.erovra2.units.Unit;
 import com.josephs_projects.erovra2.units.UnitType;
+import com.josephs_projects.erovra2.units.buildings.Building;
 import com.josephs_projects.erovra2.units.buildings.City;
 import com.josephs_projects.erovra2.units.buildings.Factory;
 import com.josephs_projects.erovra2.units.ground.GroundUnit;
@@ -23,8 +24,13 @@ public class NewAI implements AI {
 			setupVisited = true;
 		}
 		updateVisitedSpaces(nation);
-		moveGroundUnits(nation);
-		produceBuildings(nation);
+		for (Unit unit : nation.units.values()) {
+			if (unit instanceof GroundUnit) {
+				moveGroundUnits(unit);
+			} else if (unit instanceof Building) {
+				produceBuildings(unit);
+			}
+		}
 		infantryBuild(nation);
 	}
 
@@ -49,18 +55,14 @@ public class NewAI implements AI {
 		}
 	}
 
-	private void moveGroundUnits(Nation nation) {
-		for (Unit unit : nation.units.values()) {
-			if (unit instanceof GroundUnit) {
-				if (unit.position.dist(unit.getTarget()) > 1)
-					continue;
-				if (unit.engaged)
-					continue;
-				GroundUnit ground = (GroundUnit) unit;
-				if (!groundTarget(ground, nation) && ground.getTarget().dist(ground.position) < 1) {
-					randomTarget(ground, nation);
-				}
-			}
+	private void moveGroundUnits(Unit unit) {
+		if (unit.position.dist(unit.getTarget()) > 1)
+			return;
+		if (unit.engaged)
+			return;
+		GroundUnit ground = (GroundUnit) unit;
+		if (!groundTarget(ground, unit.nation)) {
+			randomTarget(ground, unit.nation);
 		}
 	}
 
@@ -74,22 +76,20 @@ public class NewAI implements AI {
 	 * 
 	 * @param nation
 	 */
-	private void produceBuildings(Nation nation) {
-		for (Unit unit : nation.units.values()) {
-			if (unit instanceof City) {
-				City city = (City) unit;
-				city.recruitSwitch.value = true;
-			}
-			if (unit instanceof Factory) {
-				Factory fac = (Factory) unit;
-				if (fac.producing())
-					continue;
+	private void produceBuildings(Unit unit) {
+		if (unit instanceof City) {
+			City city = (City) unit;
+			city.recruitSwitch.value = true;
+		}
+		if (unit instanceof Factory) {
+			Factory fac = (Factory) unit;
+			if (fac.producing())
+				return;
 
-				if (Apricot.rand.nextDouble() < 0.5) {
-					fac.startProduction(UnitType.CAVALRY);
-				} else {
-					fac.startProduction(UnitType.ARTILLERY);
-				}
+			if (Apricot.rand.nextDouble() < 0.5) {
+				fac.startProduction(UnitType.CAVALRY);
+			} else {
+				fac.startProduction(UnitType.ARTILLERY);
 			}
 		}
 	}
@@ -180,8 +180,9 @@ public class NewAI implements AI {
 					continue;
 
 				// Must have direct line of sight to tile center
-				if (score < tempDist && ground.lineOfSight(point)
-						|| (!foundEnemy && nation.visitedSpaces[x][y] <= -1)) {
+				if ((score < tempDist
+						// For the first time foundEnemy is false and enemy is found
+						|| (!foundEnemy && nation.visitedSpaces[x][y] <= -1)) && ground.lineOfSight(point)) {
 					tempDist = score;
 					closestTile = point;
 					// If enemy is found

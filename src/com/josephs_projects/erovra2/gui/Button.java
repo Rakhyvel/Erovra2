@@ -14,7 +14,7 @@ public class Button extends GUIObject {
 	ColorScheme scheme;
 	public String text;
 	public Label label;
-	boolean isHovered;
+	public boolean isHovered;
 	boolean isClicked;
 	public boolean active = true;
 

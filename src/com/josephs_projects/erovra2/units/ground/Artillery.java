@@ -106,8 +106,11 @@ public class Artillery extends GroundUnit {
 				}
 			}
 		}
-		if (closest == null)
+		if (closest == null) {
+			stuckIn = false;
+			setEngaged(false);
 			return;
+		}
 		// Set engaged to false if none found
 		if (closest.type != UnitType.CITY && closest.position.dist(position) < 48) {
 			setTarget(position);

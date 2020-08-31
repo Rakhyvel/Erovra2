@@ -67,6 +67,7 @@ public abstract class Unit implements Tickable, Renderable, InputListener, Updat
 	public double deathTicks = 0;
 	protected int birthTick = 0;
 	public int engagedTicks = 0;
+	public boolean stored = false;
 
 	public boolean hovered = false;
 	public static Unit selected = null; // Can be made a list
@@ -86,6 +87,7 @@ public abstract class Unit implements Tickable, Renderable, InputListener, Updat
 		this.lookat = new Tuple(position);
 		this.nation = nation;
 		this.type = type;
+		this.scale = type.scale;
 		birthTick = Erovra2.apricot.ticks;
 		Erovra2.world.add(this);
 		hit = type.hit;
@@ -206,7 +208,7 @@ public abstract class Unit implements Tickable, Renderable, InputListener, Updat
 			healthBar.progress = health / 100.0;
 			focusedOptions.setShown(this == focused);
 			focusedOptions
-					.updatePosition(new Tuple(Erovra2.terrain.minimap.getWidth(), Erovra2.apricot.height() - 150));
+					.updatePosition(new Tuple(Erovra2.terrain.minimap.getWidth(), Erovra2.apricot.height() - Erovra2.gui.dashboardHeight));
 		}
 	}
 
@@ -262,14 +264,16 @@ public abstract class Unit implements Tickable, Renderable, InputListener, Updat
 				Projectile p = projectiles.get(i);
 				if (!this.projectiles.contains(p.getClass()))
 					continue;
+				if (!p.dangerous)
+					continue;
+				if (p.position.dist(position) > 64)
+					continue;
 				boolean checkHealth = false;
 				if (p.type == ProjectileType.SHELL) {
-					if (p.dangerous && p.position.dist(position) < 64) {
-						health += p.attack / 64.0 * p.position.dist(position) - p.attack;
-						checkHealth = true;
-					}
+					health += p.attack / 64.0 * p.position.dist(position) - p.attack;
+					checkHealth = true;
 				} else {
-					if (p.dangerous && boundingBox(p.position)) {
+					if (boundingBox(p.position)) {
 						health -= p.attack / (type.defense * (Erovra2.terrain.getHeight(position) / 10.0 + 37 / 40.0));
 						checkHealth = true;
 					}
@@ -399,7 +403,8 @@ public abstract class Unit implements Tickable, Renderable, InputListener, Updat
 		this.target = target;
 	}
 
-	public boolean boundingbox(Tuple mousePosition) {
-		return mousePosition.dist(position) < 20;
+	@Override
+	public String toString() {
+		return type.toString().charAt(0) + type.toString().substring(1).toLowerCase();
 	}
 }

@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.josephs_projects.apricotLibrary.Tuple;
+import com.josephs_projects.apricotLibrary.input.InputEvent;
 import com.josephs_projects.erovra2.Erovra2;
 import com.josephs_projects.erovra2.Nation;
 import com.josephs_projects.erovra2.projectiles.AABullet;
@@ -17,17 +18,25 @@ public class Fighter extends Plane {
 	public Fighter(Tuple position, Nation nation) {
 		super(position, nation, UnitType.FIGHTER);
 		this.velocity = getTarget().sub(position).normalize().scalar(type.speed);
+		infoLabel.text = nation.registerNewDivisionOrdinal(type) + " Fighter Squadron";
 	}
 
 	public Fighter(Tuple position, Nation nation, int id) {
 		super(position, nation, UnitType.FIGHTER, id);
 		this.velocity = getTarget().sub(position).normalize().scalar(type.speed);
 	}
-	
+
 	@Override
 	public void tick() {
 		super.tick();
 		recon();
+	}
+
+	@Override
+	public void input(InputEvent e) {
+		if (nation.ai != null)
+			return;
+		super.input(e);
 	}
 
 	@Override
@@ -41,6 +50,9 @@ public class Fighter extends Plane {
 	 */
 	@Override
 	public void attack() {
+		if (patrolPoint == null)
+			return;
+
 		Unit tempUnit = null;
 		double tempDistance = 320;
 		List<Unit> units = new ArrayList<Unit>(nation.enemyNation.units.values());
@@ -74,9 +86,7 @@ public class Fighter extends Plane {
 		setEngagedTicks();
 		if ((Erovra2.apricot.ticks - birthTick) % 15 == 0
 				&& focalPoint.sub(position).normalize().dot(velocity.normalize()) > 0.9) {
-			new AABullet(new Tuple(position),
-					tempUnit.position.sub(position.add(new Tuple(Math.random() * 20 - 10, Math.random() * 20 - 10))),
-					nation, type.attack);
+			new AABullet(new Tuple(position), tempUnit.position.sub(position), nation, type.attack);
 		}
 
 	}
@@ -98,8 +108,8 @@ public class Fighter extends Plane {
 				nation.visitedSpaces[(int) unit.position.x / 32][(int) unit.position.y / 32] = -1;
 			}
 		}
-		
-		if(nation.ai == null)
+
+		if (nation.ai == null)
 			return false;
 
 		// Search for closest unvisited tile

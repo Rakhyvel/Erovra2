@@ -66,6 +66,8 @@ public class Nation implements Tickable, Serializable {
 	public int infantryDivisions = 0;
 	public int cavalryDivisions = 0;
 	public int artilleryDivisions = 0;
+	public int fighterDivisions = 0;
+	public int attackerDivisions = 0;
 
 	public Nation(String name, Color color, AI ai) {
 		this.name = name;
@@ -117,7 +119,7 @@ public class Nation implements Tickable, Serializable {
 
 		cityCost = 5;
 		factoryCost = 10;
-		airfieldCost = 10000;
+		airfieldCost = 10;
 	}
 
 	public void setCapital(Unit unit) {
@@ -131,10 +133,6 @@ public class Nation implements Tickable, Serializable {
 
 	@Override
 	public void tick() {
-		if (Erovra2.geneticTournament && capital.health <= 0) {
-			Erovra2.apricot.running = false;
-		}
-
 		if (ai == null)
 			return;
 		ai.takeTurn(this);
@@ -327,6 +325,10 @@ public class Nation implements Tickable, Serializable {
 			return ++cavalryDivisions;
 		case ARTILLERY:
 			return ++artilleryDivisions;
+		case FIGHTER:
+			return ++fighterDivisions;
+		case ATTACKER:
+			return ++attackerDivisions;
 		default:
 			return 0;
 		}

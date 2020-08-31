@@ -20,7 +20,11 @@ import com.josephs_projects.erovra2.gui.ColorScheme;
 import com.josephs_projects.erovra2.net.Client;
 import com.josephs_projects.erovra2.net.NetworkAdapter;
 import com.josephs_projects.erovra2.net.Server;
+import com.josephs_projects.erovra2.units.Unit;
 import com.josephs_projects.erovra2.units.buildings.City;
+import com.josephs_projects.erovra2.units.ground.Artillery;
+import com.josephs_projects.erovra2.units.ground.Cavalry;
+import com.josephs_projects.erovra2.units.ground.Infantry;
 
 /*
  * Principles:
@@ -31,8 +35,6 @@ import com.josephs_projects.erovra2.units.buildings.City;
  * - Civitania
  * - 
  * 
- * This shit pisses me off so fucking much they wont do what I tell them to wtf
- * I dont want to make this game, I just want to have made this game
  */
 
 public class Erovra2 implements InputListener {
@@ -69,8 +71,6 @@ public class Erovra2 implements InputListener {
 	public static AudioClip mortar;
 	public static AudioClip explode;
 
-	public static boolean geneticTournament = false;
-
 	public static void main(String[] args) {
 		apricot = new Apricot("Civitania", 1366, 768);
 		apricot.setIcon(new Erovra2().icon);
@@ -102,29 +102,7 @@ public class Erovra2 implements InputListener {
 			Erovra2.enemy.setCapital(new City(Erovra2.enemy.capitalPoint, Erovra2.enemy));
 			Erovra2.terrain.setOffset(new Tuple(Erovra2.size / 2 * 64, Erovra2.size / 2 * 64));
 			terrain.setOffset(home.capitalPoint);
-//			apricot.setDeltaT(1);
 		}
-
-		apricot.setWorld(world);
-		world.add(new Erovra2());
-		apricot.start();
-	}
-
-	public static void startTournament(Terrain terrain) {
-		apricot = new Apricot("Campaign: Direct Strike", 1366, 768, Apricot.Modifier.INVISIBLE);
-		apricot.isSimulation = true;
-//		apricot.setDeltaT(0.1);
-		world = new World();
-		if (terrain == null) {
-			terrain = new Terrain(size * 64, Apricot.rand.nextInt());
-		}
-		Erovra2.terrain = terrain;
-		startNewMatch();
-		Erovra2.home.setCapital(new City(Erovra2.home.capitalPoint, Erovra2.home));
-		Erovra2.enemy.setCapital(new City(Erovra2.enemy.capitalPoint, Erovra2.enemy));
-		Erovra2.terrain.setOffset(new Tuple(Erovra2.size / 2 * 64, Erovra2.size / 2 * 64));
-
-		terrain.setOffset(home.capitalPoint);
 
 		apricot.setWorld(world);
 		world.add(new Erovra2());
@@ -132,34 +110,42 @@ public class Erovra2 implements InputListener {
 	}
 
 	public static void startNewMatch() {
-		home = new Nation("Home nation", friendlyColor, new NewAI());
+		home = new Nation("Home nation", friendlyColor, null);
 		enemy = new Nation("Enemy nation", enemyColor, new NewAI());
 		home.enemyNation = enemy;
 		enemy.enemyNation = home;
 
-		Tuple testPoint = new Tuple(64 + 32, 32);
-		do {
-			testPoint.y += 64;
-			if (testPoint.y > 928 + 32) {
-				testPoint.x += 64;
-				testPoint.y = 64 + 32;
-			}
-		} while (terrain.getHeight(testPoint) <= 0.55);
-
-		Tuple testPoint2 = new Tuple((64 * size) - 64 - 32, (64 * size) - 32);
-		do {
-			testPoint2.y -= 64;
-			if (testPoint2.y < 64 + 32) {
-				testPoint2.x -= 64;
-				testPoint2.y = (64 * size) - 32;
-			}
-		} while (terrain.getHeight(testPoint2) <= 0.55);
-
-		home.capitalPoint = testPoint2;
-		enemy.capitalPoint = testPoint;
+		home.capitalPoint = findBestLocation(new Tuple((64 * size) - 64 - 32, (64 * size) - 32));
+		enemy.capitalPoint = findBestLocation(new Tuple(64 + 32, 32));
 
 		Erovra2.world.add(home);
 		Erovra2.world.add(enemy);
+	}
+
+	public static Tuple findBestLocation(Tuple start) {
+		// Search for closest unvisited tile
+		Tuple closestTile = null;
+		double tempDist = Double.POSITIVE_INFINITY;
+		for (int y = 0; y < Erovra2.size; y++) {
+			for (int x = 0; x < Erovra2.size; x++) {
+				Tuple point = new Tuple(x * 64 + 32, y * 64 + 32);
+				// Must be land
+				if (terrain.getHeight(point) <= 0.5)
+					continue;
+				// Gotta start with the goods
+				if (terrain.getOre(point) <= 0.66)
+					continue;
+				double score = start.dist(point) + 64 * Math.random();
+
+				// Must have direct line of sight to tile center
+				if (score < tempDist) {
+					tempDist = score;
+					closestTile = point;
+				}
+			}
+		}
+
+		return closestTile;
 	}
 
 	public static void setNationColors() {
@@ -187,6 +173,22 @@ public class Erovra2 implements InputListener {
 				dt *= 2;
 				apricot.setDeltaT(dt);
 				gui.messageContainer.addMessage("Time warp: " + String.format("%.0f", 16.0 / dt) + "x", Color.white);
+			} else if (apricot.keyboard.lastKey == KeyEvent.VK_SHIFT) {
+				int infantryCounter = 0;
+				int cavalryCounter = 0;
+				int artilleryCounter = 0;
+				for (Unit unit : home.units.values()) {
+					if (unit instanceof Infantry) {
+						infantryCounter++;
+					} else if (unit instanceof Cavalry) {
+						cavalryCounter++;
+					} else if (unit instanceof Artillery) {
+						artilleryCounter++;
+					}
+				}
+				gui.messageContainer.addMessage(
+						String.format("i: %d c: %d a: %d", infantryCounter, cavalryCounter, artilleryCounter),
+						Color.white);
 			}
 		}
 	}

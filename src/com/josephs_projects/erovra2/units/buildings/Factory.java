@@ -14,6 +14,8 @@ import com.josephs_projects.erovra2.gui.Label;
 import com.josephs_projects.erovra2.gui.LineBreak;
 import com.josephs_projects.erovra2.gui.RockerSwitch;
 import com.josephs_projects.erovra2.units.UnitType;
+import com.josephs_projects.erovra2.units.air.Attacker;
+import com.josephs_projects.erovra2.units.air.Fighter;
 import com.josephs_projects.erovra2.units.ground.Artillery;
 import com.josephs_projects.erovra2.units.ground.Cavalry;
 
@@ -31,11 +33,11 @@ public class Factory extends Building {
 	private GUIWrapper actions = new GUIWrapper(new Tuple(0, 0));
 	private GUIWrapper actionButtons = new GUIWrapper(new Tuple(0, 0));
 	private Label actionLabel = new Label("Actions", Erovra2.colorScheme);
-	private Button buildCavalryButton = new Button("Order cavalry", 176, 30, Erovra2.colorScheme);
-	private Button buildArtilleryButton = new Button("Order artillery", 176, 30, Erovra2.colorScheme);
-	private Button buildFighterButton = new Button("Order fighter", 176, 30, Erovra2.colorScheme);
-	private Button buildAttackerButton = new Button("Order attacker", 176, 30, Erovra2.colorScheme);
-	private Button buildBomberButton = new Button("Order bomber", 176, 30, Erovra2.colorScheme);
+	private Button buildCavalryButton = new Button("Cavalry 15&c 5&o", 176, 30, Erovra2.colorScheme);
+	private Button buildArtilleryButton = new Button("Artillery 15&c 5&o", 176, 30, Erovra2.colorScheme);
+	private Button buildFighterButton = new Button("Fighter 15&c 5&o", 176, 30, Erovra2.colorScheme);
+	private Button buildAttackerButton = new Button("Attacker 15&c 5&o", 176, 30, Erovra2.colorScheme);
+	private Button buildBomberButton = new Button("Bomber 15&c 5&o", 176, 30, Erovra2.colorScheme);
 
 	private GUIWrapper orderActions = new GUIWrapper(new Tuple(0, 0));
 	private Button cancelOrderButton = new Button("Cancel order", 176, 30, Erovra2.colorScheme);
@@ -80,6 +82,10 @@ public class Factory extends Building {
 				new Artillery(position, homeCity.nation);
 			} else if (order == UnitType.CAVALRY) {
 				new Cavalry(position, homeCity.nation);
+			} else if (order == UnitType.FIGHTER) {
+				new Fighter(homeCity.position, homeCity.nation);
+			} else if (order == UnitType.ATTACKER) {
+				new Attacker(homeCity.position, homeCity.nation);
 			}
 			if (order != null && nation.ai == null) {
 				Erovra2.gui.messageContainer.addMessage("Order delivered at " + homeCity.name + " factory!",
@@ -87,6 +93,8 @@ public class Factory extends Building {
 			}
 			if (autoSwitch != null && autoSwitch.value) {
 				startProduction(order);
+				if(order == null)
+					autoSwitch.value = false;
 			} else {
 				order = null;
 			}
@@ -116,14 +124,15 @@ public class Factory extends Building {
 		orderActions.setShown(order != null && focusedOptions.shown);
 		if (order == null) {
 			currentOrderLabel.text = "Order: None";
-			buildCavalryButton.label.text = "Order cavalry 15&c5&o";
-			buildArtilleryButton.label.text = "Order artillery 15&c5&o";
 
 			buildCavalryButton.active = homeCity.nation.coins >= 15 && homeCity.oreMined >= 5;
 			buildArtilleryButton.active = homeCity.nation.coins >= 15 && homeCity.oreMined >= 5;
-			buildFighterButton.active = false;
-			buildAttackerButton.active = false;
-			buildBomberButton.active = false;
+			buildFighterButton.active = homeCity.nation.coins >= 15 && homeCity.oreMined >= 5
+					&& homeCity.containsAirfield();
+			buildAttackerButton.active = homeCity.nation.coins >= 15 && homeCity.oreMined >= 5
+					&& homeCity.containsAirfield();
+			buildBomberButton.active = homeCity.nation.coins >= 15 && homeCity.oreMined >= 5
+					&& homeCity.containsAirfield();
 		} else {
 			int seconds = workTimer / 60;
 			int minutes = seconds / 60;
@@ -136,10 +145,14 @@ public class Factory extends Building {
 
 	@Override
 	public void update(String text) {
-		if (text.contains("Order cavalry")) {
+		if (text.contains("Cavalry")) {
 			startProduction(UnitType.CAVALRY);
-		} else if (text.contains("Order artillery")) {
+		} else if (text.contains("Artillery")) {
 			startProduction(UnitType.ARTILLERY);
+		} else if (text.contains("Fighter")) {
+			startProduction(UnitType.FIGHTER);
+		} else if (text.contains("Attacker")) {
+			startProduction(UnitType.ATTACKER);
 		} else if (text.contains("Cancel order")) {
 			homeCity.nation.coins += (int) (coinRefund * (double) (workTimer) / totalWorkTimer);
 			homeCity.oreMined += (int) (oreRefund * (double) (workTimer) / totalWorkTimer);

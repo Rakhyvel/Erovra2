@@ -33,6 +33,8 @@ public class Infantry extends GroundUnit implements Updatable {
 	public boolean buildCity = false;
 
 	static {
+		// relative to a static version of the sprite
+		// will be rotated and everything if need be
 		decoration[0] = new Point(0, 0);
 		decoration[1] = new Point(16, 32);
 		decoration[2] = new Point(0, 32);
@@ -115,6 +117,8 @@ public class Infantry extends GroundUnit implements Updatable {
 		} else {
 			g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
 		}
+		// Draw outline/cross
+		// Background is done is GroundUnit base class
 		g.drawLine(dst[0].x, dst[0].y, dst[1].x, dst[1].y);
 		g.drawLine(dst[0].x, dst[0].y, dst[2].x, dst[2].y);
 		g.drawLine(dst[0].x, dst[0].y, dst[3].x, dst[3].y);

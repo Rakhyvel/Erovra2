@@ -67,7 +67,7 @@ public class Terrain implements Tickable, Renderable, InputListener {
 
 		for (int y = 0; y < size; y++) {
 			for (int x = 0; x < size; x++) {
-				map[x][y] = map[x][y] * 0.5f + 0.5f;
+				map[x][y] = map[x][y] * 0.5f + 0.25f;
 			}
 		}
 		System.out.println("Terrain modified");
@@ -271,6 +271,7 @@ public class Terrain implements Tickable, Renderable, InputListener {
 		if (e == InputEvent.MOUSE_LEFT_RELEASED) {
 			movingMouse = false;
 		}
+		// ZOOM
 		if (e == InputEvent.MOUSEWHEEL_MOVED) {
 			if (Erovra2.apricot.mouse.mouseWheelPosition < 0) {
 				Erovra2.zoom *= 1.1;
@@ -280,6 +281,8 @@ public class Terrain implements Tickable, Renderable, InputListener {
 		}
 		if (Erovra2.zoom < 0.75 * Erovra2.apricot.height() / (double) size)
 			Erovra2.zoom = 0.75 * Erovra2.apricot.height() / (double) size;
+		if (Erovra2.zoom > 8 * Erovra2.apricot.height() / (double) size)
+			Erovra2.zoom = 8 * Erovra2.apricot.height() / (double) size;
 	}
 
 	public void setOffset(Tuple position) {

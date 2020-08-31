@@ -21,6 +21,7 @@ public class GUI implements Renderable {
 	BufferedImage coin;
 	BufferedImage population;
 	public MessageContainer messageContainer = new MessageContainer(new Tuple());
+	public int dashboardHeight = 200;
 
 	public GUI(Nation nation) {
 		this.nation = nation;
@@ -49,7 +50,7 @@ public class GUI implements Renderable {
 			g.drawString("Ping: " + String.valueOf((int) Erovra2.net.ping), 768 - 60, 28);
 		}
 		messageContainer.position.x = Erovra2.apricot.width() - 240;
-		messageContainer.position.y = Erovra2.apricot.height() - 155;
+		messageContainer.position.y = Erovra2.apricot.height() - dashboardHeight - 5;
 
 		// Draw minimap
 		g.setColor(Erovra2.colorScheme.borderColor);
@@ -110,11 +111,11 @@ public class GUI implements Renderable {
 
 	private void drawDashboard(Graphics2D g) {
 		g.setColor(Erovra2.colorScheme.borderColor);
-		g.fillRect(Erovra2.terrain.minimap.getWidth(), Erovra2.apricot.height() - 152,
+		g.fillRect(Erovra2.terrain.minimap.getWidth(), Erovra2.apricot.height() - dashboardHeight - 2,
 				Erovra2.apricot.width() - Erovra2.terrain.minimap.getWidth(), 2);
 		g.setColor(Erovra2.colorScheme.backgroundColor);
-		g.fillRect(Erovra2.terrain.minimap.getWidth() + 2, Erovra2.apricot.height() - 150,
-				Erovra2.apricot.width() - Erovra2.terrain.minimap.getWidth() - 2, 150);
+		g.fillRect(Erovra2.terrain.minimap.getWidth() + 2, Erovra2.apricot.height() - dashboardHeight,
+				Erovra2.apricot.width() - Erovra2.terrain.minimap.getWidth() - 2, dashboardHeight);
 	}
 
 	@Override

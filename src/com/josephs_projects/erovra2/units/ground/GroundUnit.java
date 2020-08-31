@@ -40,7 +40,7 @@ public abstract class GroundUnit extends Unit {
 	@Override
 	public void tick() {
 		super.tick();
-		hovered = boundingbox(Erovra2.terrain.getMousePosition());
+		hovered = this.nation.ai == null && boundingBox(Erovra2.terrain.getMousePosition());
 	}
 
 	/**
@@ -59,7 +59,8 @@ public abstract class GroundUnit extends Unit {
 			}
 			return;
 		}
-
+		if (!stuckIn && !engaged)
+			nation.visitedSpaces[(int) position.x / 32][(int) position.y / 32] = 11000;
 		if (position.dist(getTarget()) < 1 || velocity.magnitude() < 10 || stuckIn)
 			return;
 
@@ -73,8 +74,6 @@ public abstract class GroundUnit extends Unit {
 			return;
 		}
 		position = nextStep;
-
-		nation.visitedSpaces[(int) position.x / 32][(int) position.y / 32] = 11000;
 	}
 
 	/**
@@ -125,6 +124,7 @@ public abstract class GroundUnit extends Unit {
 		// Set engaged to false if none found
 		if (closest == null) {
 			setEngaged(false);
+			stuckIn = false;
 			return;
 		}
 		if (closest.type != UnitType.CITY && closest.position.dist(position) < 48) {
@@ -230,10 +230,7 @@ public abstract class GroundUnit extends Unit {
 	 * @return Whether or not the mouse is touching the ground unit.
 	 */
 	@Override
-	public boolean boundingbox(Tuple mousePosition) {
-		if (nation.ai != null)
-			return false;
-
+	public boolean boundingBox(Tuple mousePosition) {
 		int x = (int) mousePosition.x;
 		int y = (int) mousePosition.y;
 		double dx = position.x - x;
@@ -246,7 +243,7 @@ public abstract class GroundUnit extends Unit {
 		boolean checkTB = Math.abs(cos * dx - sin * dy) <= 8;
 		return checkLR && checkTB;
 	}
-	
+
 	@Override
 	public void remove() {
 		nation.mobilized -= type.population;

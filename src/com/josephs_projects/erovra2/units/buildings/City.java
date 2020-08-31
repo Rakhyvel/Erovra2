@@ -1,5 +1,6 @@
 package com.josephs_projects.erovra2.units.buildings;
 
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics2D;
@@ -37,7 +38,9 @@ public class City extends Building {
 	List<Building> buildings = new ArrayList<>();
 
 	static {
-		decoration[0] = new Point(16, 16);
+		// relative to a static version of the sprite
+		// will be rotated and everything if need be
+		decoration[0] = new Point(87, 176);
 		dst[0] = new Point();
 	}
 
@@ -106,10 +109,20 @@ public class City extends Building {
 			int width = g.getFontMetrics(bigFont).stringWidth(name);
 			g.drawString(name, dst[0].x - width / 2, dst[0].y + (int) (24 * Erovra2.zoom));
 		}
+		
+		g.setColor(new Color(0, 0, 0, 255));
+		g.setStroke(new BasicStroke((float) (Erovra2.zoom + 1), BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+		if (Erovra2.zoom > 1.5) {
+			g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+		} else {
+			g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
+		}
+		
 		int seconds = workTimer / 60;
 		int minutes = seconds / 60;
 		if (recruitsLabel != null)
 			recruitsLabel.text = "Recruits: " + minutes + "m " + (seconds - minutes * 60) + "s";
+		g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
 	}
 
 	public void changeToCapital() {
@@ -140,6 +153,7 @@ public class City extends Building {
 		nation.enemyNation.units.put(id, this);
 		nation.population -= 10;
 		nation = nation.enemyNation;
+		nation.population += 10;
 		nation.cities.add(this);
 		try {
 			image = Apricot.image.loadImage("/res/units/buildings/city.png");
@@ -149,5 +163,14 @@ public class City extends Building {
 		Apricot.image.overlayBlend(image, nation.color);
 		for (Building b : buildings)
 			b.remove();
+	}
+	
+	public boolean containsAirfield() {
+		for(Building b : buildings) {
+			if(b instanceof Airfield) {
+				return true;
+			}
+		}
+		return false;
 	}
 }

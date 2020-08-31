@@ -31,7 +31,7 @@ public class Building extends Unit {
 			deadAnimation();
 			return;
 		}
-		hovered = boundingbox(Erovra2.terrain.getMousePosition());
+		hovered = boundingBox(Erovra2.terrain.getMousePosition());
 
 		if (hitTimer > 0)
 			hitTimer--;

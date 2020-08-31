@@ -6,11 +6,9 @@ import java.util.List;
 import com.josephs_projects.apricotLibrary.Tuple;
 import com.josephs_projects.erovra2.Erovra2;
 import com.josephs_projects.erovra2.Nation;
-import com.josephs_projects.erovra2.projectiles.AABullet;
 import com.josephs_projects.erovra2.projectiles.GroundTargetBullet;
 import com.josephs_projects.erovra2.units.Unit;
 import com.josephs_projects.erovra2.units.UnitType;
-import com.josephs_projects.erovra2.units.buildings.Building;
 import com.josephs_projects.erovra2.units.ground.GroundUnit;
 
 public class Attacker extends Plane {
@@ -18,6 +16,7 @@ public class Attacker extends Plane {
 	public Attacker(Tuple position, Nation nation) {
 		super(position, nation, UnitType.ATTACKER);
 		this.velocity = getTarget().sub(position).normalize().scalar(type.speed);
+		infoLabel.text = nation.registerNewDivisionOrdinal(type) + " Attacker Squadron";
 	}
 
 	public Attacker(Tuple position, Nation nation, int id) {
@@ -59,14 +58,21 @@ public class Attacker extends Plane {
 		focalPoint.copy(tempUnit.position);
 		if (tempUnit.position.dist(position) > 120)
 			return;
+		setEngaged(true);
 		setEngagedTicks();
-		if ((Erovra2.apricot.ticks - birthTick) % 15 == 0
-				&& focalPoint.sub(position).normalize().dot(velocity.normalize()) > 0.9) {
-			new GroundTargetBullet(new Tuple(position),
-					tempUnit.position.sub(position.add(new Tuple(Math.random() * 20 - 10, Math.random() * 20 - 10))),
-					nation, type.attack);
+
+		double alignment = getAlignment(tempUnit.position);
+		if ((Erovra2.apricot.ticks - birthTick) % 15 == 0 && alignment < 0.2 * type.speed) {
+			new GroundTargetBullet(new Tuple(position), tempUnit.position.sub(position), nation, type.attack);
 		}
 
+	}
+
+	private double getAlignment(Tuple point) {
+		double first = Math.abs(direction + Math.PI / 2 - getRadian(position.sub(point)));
+		double second = Math.abs(direction + Math.PI / 2 - getRadian(position.sub(point)) - 2 * Math.PI);
+		double third = Math.abs(direction + Math.PI / 2 - getRadian(position.sub(point)) + 2 * Math.PI);
+		return Math.min(first, Math.min(third, second));
 	}
 
 	// AI Methods
