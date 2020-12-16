@@ -11,16 +11,16 @@ import java.util.ConcurrentModificationException;
 import java.util.List;
 
 import com.josephs_projects.apricotLibrary.Tuple;
+import com.josephs_projects.apricotLibrary.gui.GUIWrapper;
+import com.josephs_projects.apricotLibrary.gui.Label;
+import com.josephs_projects.apricotLibrary.gui.ProgressBar;
+import com.josephs_projects.apricotLibrary.gui.Updatable;
 import com.josephs_projects.apricotLibrary.input.InputEvent;
 import com.josephs_projects.apricotLibrary.interfaces.InputListener;
 import com.josephs_projects.apricotLibrary.interfaces.Renderable;
 import com.josephs_projects.apricotLibrary.interfaces.Tickable;
 import com.josephs_projects.erovra2.Erovra2;
 import com.josephs_projects.erovra2.Nation;
-import com.josephs_projects.erovra2.gui.GUIWrapper;
-import com.josephs_projects.erovra2.gui.Label;
-import com.josephs_projects.erovra2.gui.ProgressBar;
-import com.josephs_projects.erovra2.gui.Updatable;
 import com.josephs_projects.erovra2.net.NetworkAdapter.AddUnit;
 import com.josephs_projects.erovra2.net.NetworkAdapter.EngageTickUnit;
 import com.josephs_projects.erovra2.net.NetworkAdapter.EngageUnit;
@@ -73,12 +73,12 @@ public abstract class Unit implements Tickable, Renderable, InputListener, Updat
 	public static Unit selected = null; // Can be made a list
 	public static Unit focused = null;
 
-	protected GUIWrapper focusedOptions = new GUIWrapper(new Tuple(0, 0));
+	protected GUIWrapper focusedOptions = new GUIWrapper(new Tuple(0, 0), Erovra2.colorScheme, Erovra2.apricot, Erovra2.world);
 
-	protected GUIWrapper info = new GUIWrapper(new Tuple(0, 0));
-	protected ProgressBar healthBar = new ProgressBar(176, 9, Erovra2.colorScheme);
-	protected Label infoLabel = new Label("UNDEF", Erovra2.colorScheme);
-	protected Label attackLabel = new Label("A/D/S:  ", Erovra2.colorScheme);
+	protected GUIWrapper info = new GUIWrapper(new Tuple(0, 0), Erovra2.colorScheme, Erovra2.apricot, Erovra2.world);
+	protected ProgressBar healthBar = new ProgressBar(176, 9, Erovra2.colorScheme, Erovra2.apricot, Erovra2.world);
+	protected Label infoLabel = new Label("UNDEF", Erovra2.colorScheme, Erovra2.apricot, Erovra2.world);
+	protected Label attackLabel = new Label("A/D/S:  ", Erovra2.colorScheme, Erovra2.apricot, Erovra2.world);
 
 	// Creating a unit (SINGLEPLAYER/SENDING SIDE)
 	public Unit(Tuple position, Nation nation, UnitType type) {

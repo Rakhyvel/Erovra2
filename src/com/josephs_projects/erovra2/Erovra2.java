@@ -13,10 +13,11 @@ import com.josephs_projects.apricotLibrary.Apricot;
 import com.josephs_projects.apricotLibrary.Tuple;
 import com.josephs_projects.apricotLibrary.World;
 import com.josephs_projects.apricotLibrary.audio.AudioClip;
+import com.josephs_projects.apricotLibrary.gui.ColorScheme;
+import com.josephs_projects.apricotLibrary.gui.Updatable;
 import com.josephs_projects.apricotLibrary.input.InputEvent;
 import com.josephs_projects.apricotLibrary.interfaces.InputListener;
 import com.josephs_projects.erovra2.ai.NewAI;
-import com.josephs_projects.erovra2.gui.ColorScheme;
 import com.josephs_projects.erovra2.net.Client;
 import com.josephs_projects.erovra2.net.NetworkAdapter;
 import com.josephs_projects.erovra2.net.Server;
@@ -53,7 +54,7 @@ public class Erovra2 implements InputListener {
 	public static Terrain terrain;
 	public static GUI gui;
 
-	public static int size = 25;
+	public static int size = 16;
 	public static double zoom = 1;
 	public static double dt = 16;
 
@@ -65,7 +66,7 @@ public class Erovra2 implements InputListener {
 	public static final int AIR_LEVEL = 5;
 	public static final int GUI_LEVEL = 6;
 	public static final ColorScheme colorScheme = new ColorScheme(new Color(40, 40, 40, 180), new Color(250, 250, 250),
-			new Color(128, 128, 128, 180), new Color(250, 250, 250), new Color(128, 128, 128), new Color(211, 86, 64));
+			new Color(128, 128, 128, 180), new Color(250, 250, 250), new Color(128, 128, 128), new Color(211, 86, 64), new Color(40, 40, 40, 180));
 
 	public static AudioClip gun;
 	public static AudioClip mortar;
@@ -73,7 +74,7 @@ public class Erovra2 implements InputListener {
 
 	public static void main(String[] args) {
 		apricot = new Apricot("Civitania", 1366, 768);
-		apricot.setIcon(new Erovra2().icon);
+//		apricot.setIcon(new Erovra2().icon);
 		world = new World();
 		Apricot.rand.setSeed(0);
 
@@ -162,7 +163,6 @@ public class Erovra2 implements InputListener {
 		return retval;
 	}
 
-	@Override
 	public void input(InputEvent e) {
 		if (e == InputEvent.KEY_RELEASED) {
 			if (apricot.keyboard.lastKey == KeyEvent.VK_PERIOD) {
@@ -196,4 +196,12 @@ public class Erovra2 implements InputListener {
 	@Override
 	public void remove() {
 	}
+}
+class ButtonListener implements Updatable {
+
+	@Override
+	public void update(String name) {
+		Unit.focused.update(name);
+	}
+	
 }

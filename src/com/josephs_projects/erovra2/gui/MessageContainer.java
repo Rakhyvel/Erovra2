@@ -7,7 +7,10 @@ import java.awt.RenderingHints;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.josephs_projects.apricotLibrary.Apricot;
 import com.josephs_projects.apricotLibrary.Tuple;
+import com.josephs_projects.apricotLibrary.World;
+import com.josephs_projects.apricotLibrary.gui.GUIObject;
 import com.josephs_projects.apricotLibrary.input.InputEvent;
 import com.josephs_projects.apricotLibrary.interfaces.Tickable;
 import com.josephs_projects.erovra2.Erovra2;
@@ -26,10 +29,10 @@ public class MessageContainer {
 		}
 		if (message.length() > 35) {
 			int lastSpace = findLastSpace(message);
-			messages.add(new Message(message.substring(0, lastSpace), color, new Tuple(position), this));
+			messages.add(new Message(message.substring(0, lastSpace), color, new Tuple(position), this, Erovra2.apricot, Erovra2.world));
 			addMessage(message.substring(lastSpace).trim(), color);
 		} else {
-			messages.add(new Message(message, color, new Tuple(position), this));
+			messages.add(new Message(message, color, new Tuple(position), this, Erovra2.apricot, Erovra2.world));
 		}
 	}
 	
@@ -52,8 +55,8 @@ class Message extends GUIObject implements Tickable {
 	int birthTick;
 	MessageContainer container;
 
-	public Message(String message, Color color, Tuple position, MessageContainer container) {
-		super(position);
+	public Message(String message, Color color, Tuple position, MessageContainer container, Apricot apricot, World world) {
+		super(position, apricot, world);
 		this.message = message;
 		this.color = color;
 		this.container = container;

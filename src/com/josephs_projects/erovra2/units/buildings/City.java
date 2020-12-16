@@ -13,10 +13,10 @@ import java.util.List;
 
 import com.josephs_projects.apricotLibrary.Apricot;
 import com.josephs_projects.apricotLibrary.Tuple;
+import com.josephs_projects.apricotLibrary.gui.Label;
+import com.josephs_projects.apricotLibrary.gui.RockerSwitch;
 import com.josephs_projects.erovra2.Erovra2;
 import com.josephs_projects.erovra2.Nation;
-import com.josephs_projects.erovra2.gui.Label;
-import com.josephs_projects.erovra2.gui.RockerSwitch;
 import com.josephs_projects.erovra2.particles.Coin;
 import com.josephs_projects.erovra2.units.UnitType;
 import com.josephs_projects.erovra2.units.ground.Infantry;
@@ -30,10 +30,10 @@ public class City extends Building {
 	public String name;
 	Font bigFont = new Font("Arial", Font.PLAIN, 24);
 	double oreMined = 0;
-	Label oreMinedLabel = new Label("", Erovra2.colorScheme);
+	Label oreMinedLabel = new Label("", Erovra2.colorScheme, Erovra2.apricot, Erovra2.world);
 
-	private Label recruitsLabel = new Label("New recruits: ", Erovra2.colorScheme);
-	public RockerSwitch recruitSwitch = new RockerSwitch("Recruitment ", 40, 20, Erovra2.colorScheme);
+	private Label recruitsLabel = new Label("New recruits: ", Erovra2.colorScheme, Erovra2.apricot, Erovra2.world);
+	public RockerSwitch recruitSwitch = new RockerSwitch("Recruitment ", 40, 20, Erovra2.colorScheme, Erovra2.apricot, Erovra2.world);
 
 	List<Building> buildings = new ArrayList<>();
 

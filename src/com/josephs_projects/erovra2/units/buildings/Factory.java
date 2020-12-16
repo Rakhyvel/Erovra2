@@ -6,13 +6,14 @@ import java.io.IOException;
 
 import com.josephs_projects.apricotLibrary.Apricot;
 import com.josephs_projects.apricotLibrary.Tuple;
+import com.josephs_projects.apricotLibrary.gui.Button;
+import com.josephs_projects.apricotLibrary.gui.GUIWrapper;
+import com.josephs_projects.apricotLibrary.gui.Label;
+import com.josephs_projects.apricotLibrary.gui.LineBreak;
+import com.josephs_projects.apricotLibrary.gui.RockerSwitch;
+import com.josephs_projects.apricotLibrary.gui.Updatable;
 import com.josephs_projects.erovra2.Erovra2;
 import com.josephs_projects.erovra2.Nation;
-import com.josephs_projects.erovra2.gui.Button;
-import com.josephs_projects.erovra2.gui.GUIWrapper;
-import com.josephs_projects.erovra2.gui.Label;
-import com.josephs_projects.erovra2.gui.LineBreak;
-import com.josephs_projects.erovra2.gui.RockerSwitch;
 import com.josephs_projects.erovra2.units.UnitType;
 import com.josephs_projects.erovra2.units.air.Attacker;
 import com.josephs_projects.erovra2.units.air.Fighter;
@@ -26,21 +27,21 @@ public class Factory extends Building {
 	private int coinRefund = 0;
 	private int oreRefund = 0;
 
-	private Label currentOrderLabel = new Label("Order: None", Erovra2.colorScheme);
-	private RockerSwitch autoSwitch = new RockerSwitch("Auto order ", 40, 20, Erovra2.colorScheme);
-	private Label orderActionLabel = new Label("Actions", Erovra2.colorScheme);
+	private Label currentOrderLabel = new Label("Order: None", Erovra2.colorScheme, Erovra2.apricot, Erovra2.world);
+	private RockerSwitch autoSwitch = new RockerSwitch("Auto order ", 40, 20, Erovra2.colorScheme, Erovra2.apricot, Erovra2.world);
+	private Label orderActionLabel = new Label("Actions", Erovra2.colorScheme, Erovra2.apricot, Erovra2.world);
 
-	private GUIWrapper actions = new GUIWrapper(new Tuple(0, 0));
-	private GUIWrapper actionButtons = new GUIWrapper(new Tuple(0, 0));
-	private Label actionLabel = new Label("Actions", Erovra2.colorScheme);
-	private Button buildCavalryButton = new Button("Cavalry 15&c 5&o", 176, 30, Erovra2.colorScheme);
-	private Button buildArtilleryButton = new Button("Artillery 15&c 5&o", 176, 30, Erovra2.colorScheme);
-	private Button buildFighterButton = new Button("Fighter 15&c 5&o", 176, 30, Erovra2.colorScheme);
-	private Button buildAttackerButton = new Button("Attacker 15&c 5&o", 176, 30, Erovra2.colorScheme);
-	private Button buildBomberButton = new Button("Bomber 15&c 5&o", 176, 30, Erovra2.colorScheme);
+	private GUIWrapper actions = new GUIWrapper(new Tuple(0, 0), Erovra2.colorScheme, Erovra2.apricot, Erovra2.world);
+	private GUIWrapper actionButtons = new GUIWrapper(new Tuple(0, 0), Erovra2.colorScheme, Erovra2.apricot, Erovra2.world);
+	private Label actionLabel = new Label("Actions", Erovra2.colorScheme, Erovra2.apricot, Erovra2.world);
+	private Button buildCavalryButton = new Button("Cavalry 15&c 5&o", 176, 30, Erovra2.colorScheme, Erovra2.apricot, Erovra2.world, (Updatable) this);
+	private Button buildArtilleryButton = new Button("Artillery 15&c 5&o", 176, 30, Erovra2.colorScheme, Erovra2.apricot, Erovra2.world, (Updatable) this);
+	private Button buildFighterButton = new Button("Fighter 15&c 5&o", 176, 30, Erovra2.colorScheme, Erovra2.apricot, Erovra2.world, (Updatable) this);
+	private Button buildAttackerButton = new Button("Attacker 15&c 5&o", 176, 30, Erovra2.colorScheme, Erovra2.apricot, Erovra2.world, (Updatable) this);
+	private Button buildBomberButton = new Button("Bomber 15&c 5&o", 176, 30, Erovra2.colorScheme, Erovra2.apricot, Erovra2.world, (Updatable) this);
 
-	private GUIWrapper orderActions = new GUIWrapper(new Tuple(0, 0));
-	private Button cancelOrderButton = new Button("Cancel order", 176, 30, Erovra2.colorScheme);
+	private GUIWrapper orderActions = new GUIWrapper(new Tuple(0, 0), Erovra2.colorScheme, Erovra2.apricot, Erovra2.world);
+	private Button cancelOrderButton = new Button("Cancel order", 176, 30, Erovra2.colorScheme, Erovra2.apricot, Erovra2.world, (Updatable) this);
 	City homeCity;
 
 	public Factory(Tuple position, City homeCity) {
@@ -61,7 +62,7 @@ public class Factory extends Building {
 		infoLabel.text = homeCity.name + " Factory";
 		info.addGUIObject(currentOrderLabel);
 		info.addGUIObject(autoSwitch);
-		info.addGUIObject(new LineBreak());
+		info.addGUIObject(new LineBreak(Erovra2.apricot, Erovra2.world));
 
 		focusedOptions.addGUIObject(actions);
 		focusedOptions.addGUIObject(orderActions);

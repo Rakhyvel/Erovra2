@@ -16,12 +16,13 @@ import java.awt.image.Kernel;
 import java.io.IOException;
 
 import com.josephs_projects.apricotLibrary.Apricot;
+import com.josephs_projects.apricotLibrary.NoiseMap;
 import com.josephs_projects.apricotLibrary.Tuple;
+import com.josephs_projects.apricotLibrary.gui.Label;
 import com.josephs_projects.apricotLibrary.input.InputEvent;
 import com.josephs_projects.apricotLibrary.interfaces.InputListener;
 import com.josephs_projects.apricotLibrary.interfaces.Renderable;
 import com.josephs_projects.apricotLibrary.interfaces.Tickable;
-import com.josephs_projects.erovra2.gui.Label;
 import com.josephs_projects.erovra2.units.Unit;
 
 public class Terrain implements Tickable, Renderable, InputListener {
@@ -32,7 +33,7 @@ public class Terrain implements Tickable, Renderable, InputListener {
 
 	private BufferedImage image;
 	public BufferedImage minimap;
-	private Label minimapInfoLabel = new Label("Click on the minimap to move unit", Erovra2.colorScheme);
+	private Label minimapInfoLabel = new Label("Click on the minimap to move unit", Erovra2.colorScheme, Erovra2.apricot, Erovra2.world);
 	public BufferedImage oremap;
 	public Tuple offset;
 	private Tuple target = new Tuple();
@@ -51,9 +52,9 @@ public class Terrain implements Tickable, Renderable, InputListener {
 	 */
 	public Terrain(int size, int seed) {
 		this.size = size;
-		map = Apricot.noiseMap.normalize(Apricot.noiseMap.generate(size, seed, 0));
+		map = NoiseMap.normalize(NoiseMap.generate(size, seed, 0));
 		System.out.println("Terrain generated");
-		ore = Apricot.noiseMap.normalize(Apricot.noiseMap.generate(size, seed, 3));
+		ore = NoiseMap.normalize(NoiseMap.generate(size, seed, 3));
 		System.out.println("Ore generated");
 
 		for (int y = 0; y < size; y++) {
@@ -63,7 +64,7 @@ public class Terrain implements Tickable, Renderable, InputListener {
 						- 0.65f * distance / size;
 			}
 		}
-		Apricot.noiseMap.normalize(map);
+		NoiseMap.normalize(map);
 
 		for (int y = 0; y < size; y++) {
 			for (int x = 0; x < size; x++) {
@@ -140,7 +141,7 @@ public class Terrain implements Tickable, Renderable, InputListener {
 
 		minimapInfoLabel.fontSize = 10;
 		minimapInfoLabel.renderOrder = 100;
-		minimapInfoLabel.centered = true;
+//		minimapInfoLabel.centered = true;
 
 		Erovra2.world.add(this);
 	}
