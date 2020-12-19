@@ -40,7 +40,7 @@ public class City extends Building {
 	static {
 		// relative to a static version of the sprite
 		// will be rotated and everything if need be
-		decoration[0] = new Point(87, 176);
+		decoration[0] = new Point(16, 20);
 		dst[0] = new Point();
 	}
 

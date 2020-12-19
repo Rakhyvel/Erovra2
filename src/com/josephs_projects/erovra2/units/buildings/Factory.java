@@ -31,8 +31,8 @@ public class Factory extends Building {
 	private RockerSwitch autoSwitch = new RockerSwitch("Auto order ", 40, 20, Erovra2.colorScheme, Erovra2.apricot, Erovra2.world);
 	private Label orderActionLabel = new Label("Actions", Erovra2.colorScheme, Erovra2.apricot, Erovra2.world);
 
-	private GUIWrapper actions = new GUIWrapper(new Tuple(0, 0), Erovra2.colorScheme, Erovra2.apricot, Erovra2.world);
-	private GUIWrapper actionButtons = new GUIWrapper(new Tuple(0, 0), Erovra2.colorScheme, Erovra2.apricot, Erovra2.world);
+	private GUIWrapper actions = new GUIWrapper(new Tuple(0, 0), Erovra2.GUI_LEVEL, Erovra2.colorScheme, Erovra2.apricot, Erovra2.world);
+	private GUIWrapper actionButtons = new GUIWrapper(new Tuple(0, 0), Erovra2.GUI_LEVEL, Erovra2.colorScheme, Erovra2.apricot, Erovra2.world);
 	private Label actionLabel = new Label("Actions", Erovra2.colorScheme, Erovra2.apricot, Erovra2.world);
 	private Button buildCavalryButton = new Button("Cavalry 15&c 5&o", 176, 30, Erovra2.colorScheme, Erovra2.apricot, Erovra2.world, (Updatable) this);
 	private Button buildArtilleryButton = new Button("Artillery 15&c 5&o", 176, 30, Erovra2.colorScheme, Erovra2.apricot, Erovra2.world, (Updatable) this);
@@ -40,7 +40,7 @@ public class Factory extends Building {
 	private Button buildAttackerButton = new Button("Attacker 15&c 5&o", 176, 30, Erovra2.colorScheme, Erovra2.apricot, Erovra2.world, (Updatable) this);
 	private Button buildBomberButton = new Button("Bomber 15&c 5&o", 176, 30, Erovra2.colorScheme, Erovra2.apricot, Erovra2.world, (Updatable) this);
 
-	private GUIWrapper orderActions = new GUIWrapper(new Tuple(0, 0), Erovra2.colorScheme, Erovra2.apricot, Erovra2.world);
+	private GUIWrapper orderActions = new GUIWrapper(new Tuple(0, 0), Erovra2.GUI_LEVEL, Erovra2.colorScheme, Erovra2.apricot, Erovra2.world);
 	private Button cancelOrderButton = new Button("Cancel order", 176, 30, Erovra2.colorScheme, Erovra2.apricot, Erovra2.world, (Updatable) this);
 	City homeCity;
 
@@ -68,7 +68,9 @@ public class Factory extends Building {
 		focusedOptions.addGUIObject(orderActions);
 
 		currentOrderLabel.fontSize = 17;
+		focusedOptions.padding = 2;
 		actionButtons.padding = 0;
+		actionButtons.border = 0;
 		actionButtons.margin = 0;
 	}
 

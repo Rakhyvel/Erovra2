@@ -21,7 +21,7 @@ public class GUI implements Renderable {
 	BufferedImage coin;
 	BufferedImage population;
 	public MessageContainer messageContainer = new MessageContainer(new Tuple());
-	public int dashboardHeight = 200;
+	public static int dashboardHeight = 200;
 
 	public GUI(Nation nation) {
 		this.nation = nation;
@@ -83,7 +83,9 @@ public class GUI implements Renderable {
 			g.fillRect(x - 3, y - 3, 6, 6);
 		}
 		drawNationInfo(g);
-		drawDashboard(g);
+		if (Unit.focused != null) {
+			drawDashboard(g);
+		}
 	}
 
 	private void drawNationInfo(Graphics2D g) {
@@ -102,7 +104,7 @@ public class GUI implements Renderable {
 		g.drawImage(coin, 8, 8, null);
 
 		// Draw population
-		if(nation.mobilized >= nation.population) {
+		if (nation.mobilized >= nation.population) {
 			g.setColor(Erovra2.colorScheme.errorColor);
 		}
 		g.drawString(addSuffix(nation.mobilized) + " / " + addSuffix(nation.population), 36, 52);
@@ -127,14 +129,14 @@ public class GUI implements Renderable {
 	public void remove() {
 
 	}
-	
+
 	public String addSuffix(int population) {
 		int i = 0;
-		while(population >= 1000) {
+		while (population >= 1000) {
 			population /= 1000;
 			i++;
 		}
-		switch(i) {
+		switch (i) {
 		case 0:
 			return String.valueOf(population) + "k";
 		case 1:

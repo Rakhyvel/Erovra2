@@ -11,6 +11,7 @@ import com.josephs_projects.apricotLibrary.Tuple;
 import com.josephs_projects.apricotLibrary.gui.Button;
 import com.josephs_projects.apricotLibrary.gui.GUIWrapper;
 import com.josephs_projects.apricotLibrary.gui.Label;
+import com.josephs_projects.apricotLibrary.gui.LineBreak;
 import com.josephs_projects.apricotLibrary.gui.Updatable;
 import com.josephs_projects.erovra2.Erovra2;
 import com.josephs_projects.erovra2.Nation;
@@ -20,8 +21,8 @@ public class Infantry extends GroundUnit implements Updatable {
 	private static Point[] decoration = new Point[4];
 	private static Point[] dst = new Point[4];
 
-	private GUIWrapper actions = new GUIWrapper(new Tuple(0, 0), Erovra2.colorScheme, Erovra2.apricot, Erovra2.world);
-	private GUIWrapper actionButtons = new GUIWrapper(new Tuple(0, 0), Erovra2.colorScheme, Erovra2.apricot, Erovra2.world);
+	private GUIWrapper actions = new GUIWrapper(new Tuple(0, 0), Erovra2.GUI_LEVEL, Erovra2.colorScheme, Erovra2.apricot, Erovra2.world);
+	private GUIWrapper actionButtons = new GUIWrapper(new Tuple(0, 0), Erovra2.GUI_LEVEL, Erovra2.colorScheme, Erovra2.apricot, Erovra2.world);
 	private Label actionLabel = new Label("Actions", Erovra2.colorScheme, Erovra2.apricot, Erovra2.world);
 	private Button buildCityButton = new Button("Build city", 176, 30, Erovra2.colorScheme, Erovra2.apricot, Erovra2.world, (Updatable)this);
 	private Button buildFactoryButton = new Button("Build factory", 176, 30, Erovra2.colorScheme, Erovra2.apricot, Erovra2.world, (Updatable)this);
@@ -55,13 +56,17 @@ public class Infantry extends GroundUnit implements Updatable {
 		actionButtons.addGUIObject(buildAirfieldButton);
 		actionButtons.addGUIObject(testSoilButton);
 
+		focusedOptions.addGUIObject(new LineBreak(Erovra2.apricot, Erovra2.world));
 		focusedOptions.addGUIObject(actions);
 		focusedOptions.renderOrder = Erovra2.GUI_LEVEL;
 		actions.renderOrder = Erovra2.GUI_LEVEL;
 
 		infoLabel.text = nation.registerNewDivisionOrdinal(type) + " Infantry Legion";
+		focusedOptions.padding = 2;
 		actionButtons.padding = 0;
+		actionButtons.border = 0;
 		actionButtons.margin = 0;
+		
 	}
 
 	public Infantry(Tuple position, Nation nation, int id) {

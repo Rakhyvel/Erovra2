@@ -65,8 +65,14 @@ public class Erovra2 implements InputListener {
 	public static final int SURFACE_AIR_LEVEL = 4;
 	public static final int AIR_LEVEL = 5;
 	public static final int GUI_LEVEL = 6;
-	public static final ColorScheme colorScheme = new ColorScheme(new Color(40, 40, 40, 180), new Color(250, 250, 250),
-			new Color(128, 128, 128, 180), new Color(250, 250, 250), new Color(128, 128, 128), new Color(211, 86, 64), new Color(40, 40, 40, 180));
+	public static final ColorScheme colorScheme = new ColorScheme(
+			new Color(40, 40, 40, 180),  // backgroundColor
+			new Color(250, 250, 250),    // borderColor   
+			new Color(128, 128, 128, 180),// highlightColor
+			new Color(250, 250, 250),    // textColor
+			new Color(128, 128, 128),    // disabledTextColor
+			enemyColor,      			 // errorColor 
+			friendlyColor); // fillColor        
 
 	public static AudioClip gun;
 	public static AudioClip mortar;

@@ -53,7 +53,7 @@ public abstract class Unit implements Tickable, Renderable, InputListener, Updat
 	protected transient BufferedImage hit = null;
 	public int hitTimer = 0;
 	public double direction;
-	public double scale = 1;
+	public double scale;
 
 	public double health = 100;
 	public boolean engaged = false;
@@ -73,9 +73,9 @@ public abstract class Unit implements Tickable, Renderable, InputListener, Updat
 	public static Unit selected = null; // Can be made a list
 	public static Unit focused = null;
 
-	protected GUIWrapper focusedOptions = new GUIWrapper(new Tuple(0, 0), Erovra2.colorScheme, Erovra2.apricot, Erovra2.world);
+	protected GUIWrapper focusedOptions = new GUIWrapper(new Tuple(0, 0), Erovra2.GUI_LEVEL, Erovra2.colorScheme, Erovra2.apricot, Erovra2.world);
 
-	protected GUIWrapper info = new GUIWrapper(new Tuple(0, 0), Erovra2.colorScheme, Erovra2.apricot, Erovra2.world);
+	protected GUIWrapper info = new GUIWrapper(new Tuple(0, 0), Erovra2.GUI_LEVEL, Erovra2.colorScheme, Erovra2.apricot, Erovra2.world);
 	protected ProgressBar healthBar = new ProgressBar(176, 9, Erovra2.colorScheme, Erovra2.apricot, Erovra2.world);
 	protected Label infoLabel = new Label("UNDEF", Erovra2.colorScheme, Erovra2.apricot, Erovra2.world);
 	protected Label attackLabel = new Label("A/D/S:  ", Erovra2.colorScheme, Erovra2.apricot, Erovra2.world);
@@ -107,6 +107,7 @@ public abstract class Unit implements Tickable, Renderable, InputListener, Updat
 		info.addGUIObject(healthBar);
 
 		focusedOptions.addGUIObject(info);
+		focusedOptions.padding = 2;
 	}
 
 	// Creating a unit (RECEIVING SIDE)
@@ -199,6 +200,7 @@ public abstract class Unit implements Tickable, Renderable, InputListener, Updat
 			g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 			g.drawImage(hit, getAffineTransform(hit), null);
 		}
+		
 		float deathOpacity = (float) Math.min(1, Math.max(0, (60 - deathTicks) / 60.0));
 		g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, deathOpacity));
 		g.drawImage(image, getAffineTransform(image), null);

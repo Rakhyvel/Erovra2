@@ -15,7 +15,7 @@ import com.josephs_projects.erovra2.units.air.Plane;
 public class Airfield extends Building implements Updatable {
 	public UnitType order = null;
 	City homeCity;
-	private GUIWrapper actions = new GUIWrapper(new Tuple(0, 0), Erovra2.colorScheme, Erovra2.apricot, Erovra2.world);
+	private GUIWrapper actions = new GUIWrapper(new Tuple(0, 0), Erovra2.GUI_LEVEL, Erovra2.colorScheme, Erovra2.apricot, Erovra2.world);
 	private Label hangarLabel = new Label("Hangar", Erovra2.colorScheme, Erovra2.apricot, Erovra2.world);
 	private Label actionLabel = new Label("Actions", Erovra2.colorScheme, Erovra2.apricot, Erovra2.world);
 	private Button launchButton = new Button("Launch", 176, 30, Erovra2.colorScheme, Erovra2.apricot, Erovra2.world, (Updatable) this);

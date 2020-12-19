@@ -14,6 +14,8 @@ import com.josephs_projects.apricotLibrary.gui.GUIObject;
 import com.josephs_projects.apricotLibrary.input.InputEvent;
 import com.josephs_projects.apricotLibrary.interfaces.Tickable;
 import com.josephs_projects.erovra2.Erovra2;
+import com.josephs_projects.erovra2.GUI;
+import com.josephs_projects.erovra2.units.Unit;
 
 public class MessageContainer {
 	List<Message> messages = new ArrayList<>();
@@ -29,16 +31,17 @@ public class MessageContainer {
 		}
 		if (message.length() > 35) {
 			int lastSpace = findLastSpace(message);
-			messages.add(new Message(message.substring(0, lastSpace), color, new Tuple(position), this, Erovra2.apricot, Erovra2.world));
+			messages.add(new Message(message.substring(0, lastSpace), color, new Tuple(position), this, Erovra2.apricot,
+					Erovra2.world));
 			addMessage(message.substring(lastSpace).trim(), color);
 		} else {
 			messages.add(new Message(message, color, new Tuple(position), this, Erovra2.apricot, Erovra2.world));
 		}
 	}
-	
+
 	private int findLastSpace(String message) {
-		for(int i = message.length() - 1; i >= 0; i--) {
-			if(message.charAt(i) == ' ') {
+		for (int i = message.length() - 1; i >= 0; i--) {
+			if (message.charAt(i) == ' ') {
 				return i;
 			}
 		}
@@ -55,7 +58,8 @@ class Message extends GUIObject implements Tickable {
 	int birthTick;
 	MessageContainer container;
 
-	public Message(String message, Color color, Tuple position, MessageContainer container, Apricot apricot, World world) {
+	public Message(String message, Color color, Tuple position, MessageContainer container, Apricot apricot,
+			World world) {
 		super(position, apricot, world);
 		this.message = message;
 		this.color = color;
@@ -96,15 +100,30 @@ class Message extends GUIObject implements Tickable {
 		g.setRenderingHint(RenderingHints.KEY_ALPHA_INTERPOLATION, RenderingHints.VALUE_ALPHA_INTERPOLATION_QUALITY);
 		// Draw background
 		g.setColor(new Color(0, 0, 0, (int) (102 * fade)));
-		g.fillRect((int) position.x - 3, (int) position.y - height + 3, Erovra2.apricot.width() - (int) position.x + 3,
-				height);
+		if (Unit.focused == null) {
+			g.fillRect((int) position.x - 3, (int) position.y - height + 3 + GUI.dashboardHeight,
+					Erovra2.apricot.width() - (int) position.x + 3,
+					height);
+		} else {
+			g.fillRect((int) position.x - 3, (int) position.y - height + 3,
+					Erovra2.apricot.width() - (int) position.x + 3,
+					height);
+		}
 
 		// Draw Text
 		width = g.getFontMetrics(g.getFont()).stringWidth(message);
 		g.setColor(new Color(0, 0, 0, (int) (70 * fade)));
-		g.drawString(message, (int) position.x, (int) position.y + 1);
+		if (Unit.focused == null) {
+			g.drawString(message, (int) position.x, (int) position.y + 1 + GUI.dashboardHeight);
+		} else {
+			g.drawString(message, (int) position.x, (int) position.y + 1);
+		}
 		g.setColor(new Color(color.getRed(), color.getGreen(), color.getBlue(), (int) (255 * fade)));
-		g.drawString(message, (int) position.x, (int) position.y);
+		if (Unit.focused == null) {
+			g.drawString(message, (int) position.x, (int) position.y + GUI.dashboardHeight);
+		} else {
+			g.drawString(message, (int) position.x, (int) position.y);
+		}
 	}
 
 	@Override
