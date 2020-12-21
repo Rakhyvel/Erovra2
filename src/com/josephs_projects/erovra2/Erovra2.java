@@ -55,7 +55,7 @@ public class Erovra2 implements InputListener {
 	public static GUI gui;
 
 	public static int size = 16;
-	public static double zoom = 1;
+	public static double zoom = 2;
 	public static double dt = 16;
 
 	public static final int TERRAIN_LEVEL = 0;
@@ -79,7 +79,7 @@ public class Erovra2 implements InputListener {
 	public static AudioClip explode;
 
 	public static void main(String[] args) {
-		apricot = new Apricot("Civitania", 1366, 768);
+		apricot = new Apricot("Civitania", 1166, 640);
 //		apricot.setIcon(new Erovra2().icon);
 		world = new World();
 		Apricot.rand.setSeed(0);

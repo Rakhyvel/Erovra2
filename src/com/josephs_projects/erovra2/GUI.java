@@ -22,7 +22,7 @@ public class GUI implements Renderable {
 	BufferedImage population;
 	BufferedImage bomb;
 	public MessageContainer messageContainer = new MessageContainer(new Tuple());
-	public static int dashboardHeight = 200;
+	public static int dashboardHeight = 201;
 
 	public GUI(Nation nation) {
 		this.nation = nation;

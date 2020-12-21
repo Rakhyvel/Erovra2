@@ -8,8 +8,11 @@ import com.josephs_projects.erovra2.Nation;
 import com.josephs_projects.erovra2.projectiles.Bomb;
 import com.josephs_projects.erovra2.units.UnitType;
 
+/*
+ * Bombers drop bombs onto enemies. They are slower, but can attack buildings
+ */
 public class Bomber extends Plane {
-	boolean bombLoaded = true;
+	public boolean bombLoaded = true;
 	boolean armed = false;
 
 	private Button armButton = new Button("Arm bomb", 176, 30, Erovra2.colorScheme, Erovra2.apricot, Erovra2.world, (Updatable) this);

@@ -20,6 +20,7 @@ import com.josephs_projects.apricotLibrary.interfaces.InputListener;
 import com.josephs_projects.apricotLibrary.interfaces.Renderable;
 import com.josephs_projects.apricotLibrary.interfaces.Tickable;
 import com.josephs_projects.erovra2.Erovra2;
+import com.josephs_projects.erovra2.GUI;
 import com.josephs_projects.erovra2.Nation;
 import com.josephs_projects.erovra2.net.NetworkAdapter.AddUnit;
 import com.josephs_projects.erovra2.net.NetworkAdapter.EngageTickUnit;
@@ -210,7 +211,7 @@ public abstract class Unit implements Tickable, Renderable, InputListener, Updat
 			healthBar.progress = health / 100.0;
 			focusedOptions.setShown(this == focused);
 			focusedOptions
-					.updatePosition(new Tuple(Erovra2.terrain.minimap.getWidth(), Erovra2.apricot.height() - Erovra2.gui.dashboardHeight));
+					.updatePosition(new Tuple(Erovra2.terrain.minimap.getWidth(), Erovra2.apricot.height() - GUI.dashboardHeight));
 		}
 	}
 

@@ -13,6 +13,9 @@ import com.josephs_projects.erovra2.units.UnitType;
 import com.josephs_projects.erovra2.units.buildings.Building;
 import com.josephs_projects.erovra2.units.ground.GroundUnit;
 
+/*
+ * Fighters attack enemy planes
+ */
 public class Fighter extends Plane {
 
 	public Fighter(Tuple position, Nation nation) {

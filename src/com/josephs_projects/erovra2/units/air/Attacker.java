@@ -11,6 +11,9 @@ import com.josephs_projects.erovra2.units.Unit;
 import com.josephs_projects.erovra2.units.UnitType;
 import com.josephs_projects.erovra2.units.ground.GroundUnit;
 
+/*
+ * Attackers can attack ground and sea troops
+ */
 public class Attacker extends Plane {
 
 	public Attacker(Tuple position, Nation nation) {

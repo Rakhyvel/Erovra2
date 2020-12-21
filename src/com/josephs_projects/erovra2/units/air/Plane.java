@@ -14,6 +14,7 @@ import com.josephs_projects.apricotLibrary.gui.Label;
 import com.josephs_projects.apricotLibrary.gui.Updatable;
 import com.josephs_projects.apricotLibrary.input.InputEvent;
 import com.josephs_projects.erovra2.Erovra2;
+import com.josephs_projects.erovra2.GUI;
 import com.josephs_projects.erovra2.Nation;
 import com.josephs_projects.erovra2.particles.Smoke;
 import com.josephs_projects.erovra2.projectiles.AABullet;
@@ -21,6 +22,9 @@ import com.josephs_projects.erovra2.units.Unit;
 import com.josephs_projects.erovra2.units.UnitType;
 import com.josephs_projects.erovra2.units.buildings.Airfield;
 
+/**
+ * Represents the base class for all units that go by air
+ */
 public class Plane extends Unit {
 	private transient BufferedImage left;
 	private transient BufferedImage center;
@@ -114,7 +118,7 @@ public class Plane extends Unit {
 			healthBar.progress = health / 100.0;
 			focusedOptions.setShown(this == focused && !stored);
 			focusedOptions.updatePosition(new Tuple(Erovra2.terrain.minimap.getWidth(),
-					Erovra2.apricot.height() - Erovra2.gui.dashboardHeight));
+					Erovra2.apricot.height() - GUI.dashboardHeight));
 			abortButtons.setShown(landing && focusedOptions.shown && !stored);
 			actionButtons.setShown(!landing && focusedOptions.shown && !stored);
 			focusedOptions.updatePosition(focusedOptions.position);

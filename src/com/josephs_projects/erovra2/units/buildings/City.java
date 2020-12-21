@@ -19,6 +19,7 @@ import com.josephs_projects.erovra2.Erovra2;
 import com.josephs_projects.erovra2.Nation;
 import com.josephs_projects.erovra2.particles.Coin;
 import com.josephs_projects.erovra2.units.UnitType;
+import com.josephs_projects.erovra2.units.air.Bomber;
 import com.josephs_projects.erovra2.units.ground.Infantry;
 
 public class City extends Building {
@@ -134,6 +135,8 @@ public class City extends Building {
 		Apricot.image.overlayBlend(image, nation.color);
 		this.capital = true;
 		new Infantry(position, nation);
+		Bomber f = new Bomber(position, nation);
+		f.health = 50;
 		recruitSwitch.value = true;
 	}
 
