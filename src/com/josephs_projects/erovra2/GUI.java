@@ -20,6 +20,7 @@ public class GUI implements Renderable {
 	Font bigFont = new Font("Arial", Font.PLAIN, 18);
 	BufferedImage coin;
 	BufferedImage population;
+	BufferedImage bomb;
 	public MessageContainer messageContainer = new MessageContainer(new Tuple());
 	public static int dashboardHeight = 200;
 
@@ -29,6 +30,7 @@ public class GUI implements Renderable {
 		try {
 			coin = Apricot.image.loadImage("/res/coin.png");
 			population = Apricot.image.loadImage("/res/population.png");
+			bomb = Apricot.image.loadImage("/res/bomb.png");
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -89,9 +91,9 @@ public class GUI implements Renderable {
 	}
 
 	private void drawNationInfo(Graphics2D g) {
-		// Draw thingy
+		// Draw nation info rectangle
 		g.setColor(Erovra2.colorScheme.backgroundColor);
-		g.fillRect(0, 0, 140, 61);
+		g.fillRect(0, 0, 140, 88);
 
 		// Set font stuff
 		g.setFont(new Font("Trebuchet", Font.PLAIN, 18));
@@ -109,6 +111,10 @@ public class GUI implements Renderable {
 		}
 		g.drawString(addSuffix(nation.mobilized) + " / " + addSuffix(nation.population), 36, 52);
 		g.drawImage(population, 8, 35, null);
+
+		// Draw bombs
+		g.drawString(String.valueOf(nation.bombs), 36, 79);
+		g.drawImage(bomb, 8, 62, null);
 	}
 
 	private void drawDashboard(Graphics2D g) {

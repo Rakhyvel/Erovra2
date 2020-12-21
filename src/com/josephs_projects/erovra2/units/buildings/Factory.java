@@ -16,6 +16,7 @@ import com.josephs_projects.erovra2.Erovra2;
 import com.josephs_projects.erovra2.Nation;
 import com.josephs_projects.erovra2.units.UnitType;
 import com.josephs_projects.erovra2.units.air.Attacker;
+import com.josephs_projects.erovra2.units.air.Bomber;
 import com.josephs_projects.erovra2.units.air.Fighter;
 import com.josephs_projects.erovra2.units.ground.Artillery;
 import com.josephs_projects.erovra2.units.ground.Cavalry;
@@ -39,6 +40,7 @@ public class Factory extends Building {
 	private Button buildFighterButton = new Button("Fighter 15&c 5&o", 176, 30, Erovra2.colorScheme, Erovra2.apricot, Erovra2.world, (Updatable) this);
 	private Button buildAttackerButton = new Button("Attacker 15&c 5&o", 176, 30, Erovra2.colorScheme, Erovra2.apricot, Erovra2.world, (Updatable) this);
 	private Button buildBomberButton = new Button("Bomber 15&c 5&o", 176, 30, Erovra2.colorScheme, Erovra2.apricot, Erovra2.world, (Updatable) this);
+	private Button buildBombButton = new Button("Bomb 15&c 5&o", 176, 30, Erovra2.colorScheme, Erovra2.apricot, Erovra2.world, (Updatable) this);
 
 	private GUIWrapper orderActions = new GUIWrapper(new Tuple(0, 0), Erovra2.GUI_LEVEL, Erovra2.colorScheme, Erovra2.apricot, Erovra2.world);
 	private Button cancelOrderButton = new Button("Cancel order", 176, 30, Erovra2.colorScheme, Erovra2.apricot, Erovra2.world, (Updatable) this);
@@ -53,6 +55,7 @@ public class Factory extends Building {
 		actionButtons.addGUIObject(buildFighterButton);
 		actionButtons.addGUIObject(buildAttackerButton);
 		actionButtons.addGUIObject(buildBomberButton);
+		actionButtons.addGUIObject(buildBombButton);
 
 		orderActions.addGUIObject(orderActionLabel);
 		orderActions.addGUIObject(cancelOrderButton);
@@ -89,6 +92,10 @@ public class Factory extends Building {
 				new Fighter(homeCity.position, homeCity.nation);
 			} else if (order == UnitType.ATTACKER) {
 				new Attacker(homeCity.position, homeCity.nation);
+			} else if (order == UnitType.BOMBER) {
+				new Bomber(homeCity.position, homeCity.nation);
+			} else if (order == UnitType.BOMB) {
+				nation.bombs++;
 			}
 			if (order != null && nation.ai == null) {
 				Erovra2.gui.messageContainer.addMessage("Order delivered at " + homeCity.name + " factory!",
@@ -136,6 +143,7 @@ public class Factory extends Building {
 					&& homeCity.containsAirfield();
 			buildBomberButton.active = homeCity.nation.coins >= 15 && homeCity.oreMined >= 5
 					&& homeCity.containsAirfield();
+			buildBombButton.active = homeCity.nation.coins >= 15 && homeCity.oreMined >= 5;
 		} else {
 			int seconds = workTimer / 60;
 			int minutes = seconds / 60;
@@ -156,6 +164,10 @@ public class Factory extends Building {
 			startProduction(UnitType.FIGHTER);
 		} else if (text.contains("Attacker")) {
 			startProduction(UnitType.ATTACKER);
+		}  else if (text.contains("Bomber")) {
+			startProduction(UnitType.BOMBER);
+		}  else if (text.contains("Bomb")) {
+			startProduction(UnitType.BOMB);
 		} else if (text.contains("Cancel order")) {
 			homeCity.nation.coins += (int) (coinRefund * (double) (workTimer) / totalWorkTimer);
 			homeCity.oreMined += (int) (oreRefund * (double) (workTimer) / totalWorkTimer);

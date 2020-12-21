@@ -10,10 +10,12 @@ public enum UnitType {
 	ARTILLERY("ground", "ground", 0.5, 0.5, 0.2, 5, 1),
 
 	FIGHTER("air", "fighter", 0.5, 1.6, 1, 1, 1), ATTACKER("air", "attacker", 0.5, 1.6, 0.6, 1, 1),
-//	BOMBER("air", "bomber", 0.5, 5, 0.75),
+	BOMBER("air", "bomber", 0.5, 1.6, 0.5, 1, 1),
 
 	CITY("buildings", "city", 1, 0, 0, 0, 1), FACTORY("buildings", "factory", 1, 0, 0, 0, 1),
-	AIRFIELD("buildings", "airfield", 1, 0, 0, 0, 1);
+	AIRFIELD("buildings", "airfield", 1, 0, 0, 0, 1),
+
+	BOMB("air", "bomber", 1, 0, 0, 0, 0);
 
 	public String name;
 	public String branch;

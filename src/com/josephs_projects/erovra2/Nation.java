@@ -53,6 +53,7 @@ public class Nation implements Tickable, Serializable {
 	public int coins;
 	public int population;
 	public int mobilized;
+	public int bombs;
 
 	public int cityCost;
 	public int factoryCost;
@@ -68,6 +69,7 @@ public class Nation implements Tickable, Serializable {
 	public int artilleryDivisions = 0;
 	public int fighterDivisions = 0;
 	public int attackerDivisions = 0;
+	public int bomberDivisions = 0;
 
 	public Nation(String name, Color color, AI ai) {
 		this.name = name;
@@ -329,6 +331,8 @@ public class Nation implements Tickable, Serializable {
 			return ++fighterDivisions;
 		case ATTACKER:
 			return ++attackerDivisions;
+		case BOMBER:
+			return ++bomberDivisions;
 		default:
 			return 0;
 		}
