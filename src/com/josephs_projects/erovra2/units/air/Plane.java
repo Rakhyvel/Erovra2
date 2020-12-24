@@ -1,6 +1,7 @@
 package com.josephs_projects.erovra2.units.air;
 
 import java.awt.AlphaComposite;
+import java.awt.Cursor;
 import java.awt.Graphics2D;
 import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
@@ -29,15 +30,24 @@ public class Plane extends Unit {
 	private transient BufferedImage left;
 	private transient BufferedImage center;
 	private transient BufferedImage right;
+	private transient BufferedImage leftShadow;
+	private transient BufferedImage centerShadow;
+	private transient BufferedImage rightShadow;
+	double height = 0;
 	public Tuple patrolPoint;
 	public Tuple focalPoint = new Tuple();
 
-	private GUIWrapper actions = new GUIWrapper(new Tuple(0, 0), Erovra2.GUI_LEVEL, Erovra2.colorScheme, Erovra2.apricot, Erovra2.world);
-	protected GUIWrapper actionButtons = new GUIWrapper(new Tuple(0, 0), Erovra2.GUI_LEVEL, Erovra2.colorScheme, Erovra2.apricot, Erovra2.world);
-	private GUIWrapper abortButtons = new GUIWrapper(new Tuple(0, 0), Erovra2.GUI_LEVEL, Erovra2.colorScheme, Erovra2.apricot, Erovra2.world);
+	private GUIWrapper actions = new GUIWrapper(new Tuple(0, 0), Erovra2.GUI_LEVEL, Erovra2.colorScheme,
+			Erovra2.apricot, Erovra2.world);
+	protected GUIWrapper actionButtons = new GUIWrapper(new Tuple(0, 0), Erovra2.GUI_LEVEL, Erovra2.colorScheme,
+			Erovra2.apricot, Erovra2.world);
+	private GUIWrapper abortButtons = new GUIWrapper(new Tuple(0, 0), Erovra2.GUI_LEVEL, Erovra2.colorScheme,
+			Erovra2.apricot, Erovra2.world);
 	private Label actionLabel = new Label("Actions", Erovra2.colorScheme, Erovra2.apricot, Erovra2.world);
-	private Button landButton = new Button("Land", 176, 30, Erovra2.colorScheme, Erovra2.apricot, Erovra2.world, (Updatable) this);
-	private Button abortButton = new Button("Abort landing", 176, 30, Erovra2.colorScheme, Erovra2.apricot, Erovra2.world, (Updatable) this);
+	private Button landButton = new Button("Land", 176, 30, Erovra2.colorScheme, Erovra2.apricot, Erovra2.world,
+			(Updatable) this);
+	private Button abortButton = new Button("Abort landing", 176, 30, Erovra2.colorScheme, Erovra2.apricot,
+			Erovra2.world, (Updatable) this);
 	private boolean leadingForLanding = false;
 	private boolean landing = false;
 	private Airfield airfield = null;
@@ -49,6 +59,10 @@ public class Plane extends Unit {
 			center = Apricot.image.loadImage("/res/units/air/" + type.name + "2.png");
 			right = Apricot.image.loadImage("/res/units/air/" + type.name + "3.png");
 			hit = Apricot.image.loadImage("/res/units/air/" + type.name + "Hit.png");
+			
+			leftShadow = shadowify(left);
+			centerShadow = shadowify(center);
+			rightShadow = shadowify(right);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -73,6 +87,7 @@ public class Plane extends Unit {
 
 		abortButtons.padding = 0;
 		abortButtons.margin = 0;
+		scale = 0.5;
 	}
 
 	public Plane(Tuple position, Nation nation, UnitType type, int id) {
@@ -82,6 +97,10 @@ public class Plane extends Unit {
 			center = Apricot.image.loadImage("/res/units/air/" + type.name + "2.png");
 			right = Apricot.image.loadImage("/res/units/air/" + type.name + "3.png");
 			hit = Apricot.image.loadImage("/res/units/air/" + type.name + "Hit.png");
+			
+			leftShadow = shadowify(left);
+			centerShadow = shadowify(center);
+			rightShadow = shadowify(right);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -97,10 +116,22 @@ public class Plane extends Unit {
 		if (stored)
 			return;
 		if (health < 20 && Erovra2.apricot.ticks % 8 == 0) {
-			new Smoke(position);
+			new Smoke(position.sub(new Tuple(0, height)));
 		}
 		super.tick();
+		// Make plane bigger when taking off, smaller when landing
+		if(!landing && height < 32) {
+			height += type.speed / 2.0;
+			scale += type.speed / 64.0;
+			scale = Math.min(1, scale);
+		} else if (landing) {
+			scale = Math.min(32, airfield.position.dist(position) / 2) / 64 + 0.5;
+			height = Math.min(32, airfield.position.dist(position) / 2);
+		}
 		hovered = boundingBox(Erovra2.terrain.getMousePosition());
+		if(hovered && (Unit.selected == this || Unit.selected == null)) {
+			Erovra2.apricot.cursor = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR);
+		}
 		if (landing && airfield.position.dist(position) < 8) {
 			airfield.landAirplane(this);
 			landing = false;
@@ -127,17 +158,20 @@ public class Plane extends Unit {
 			return;
 
 		int ticks = Erovra2.apricot.ticks / 2;
-//		direction -= Math.sin(ticks * 0.01) * 0.01;
 		float deathOpacity = (float) ((60 - deathTicks) / 60.0);
 		g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, deathOpacity));
 		if (ticks % 4 == 0) {
-			g.drawImage(left, getAffineTransform(left), null);
+			g.drawImage(leftShadow, getAffineTransform(left, 0), null);
+			g.drawImage(left, getAffineTransform(left, height), null);
 		} else if (ticks % 4 == 1) {
-			g.drawImage(center, getAffineTransform(center), null);
+			g.drawImage(centerShadow, getAffineTransform(center, 0), null);
+			g.drawImage(center, getAffineTransform(center, height), null);
 		} else if (ticks % 4 == 2) {
-			g.drawImage(right, getAffineTransform(right), null);
+			g.drawImage(rightShadow, getAffineTransform(right, 0), null);
+			g.drawImage(right, getAffineTransform(right, height), null);
 		} else if (ticks % 4 == 3) {
-			g.drawImage(center, getAffineTransform(center), null);
+			g.drawImage(centerShadow, getAffineTransform(center, 0), null);
+			g.drawImage(center, getAffineTransform(center, height), null);
 		}
 
 		if (nation == Erovra2.enemy)
@@ -145,9 +179,9 @@ public class Plane extends Unit {
 
 		if (hitTimer > 0 && !dead) {
 			g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_ATOP, hitTimer / 18.0f));
-			g.drawImage(hit, getAffineTransform(hit), null);
+			g.drawImage(hit, getAffineTransform(hit, height), null);
 		} else if (hovered || selected == this) {
-			g.drawImage(hit, getAffineTransform(hit), null);
+			g.drawImage(hit, getAffineTransform(hit, height), null);
 		}
 		g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1));
 	}
@@ -216,19 +250,30 @@ public class Plane extends Unit {
 		if (targetAlignment < 0.92) {
 			// If plane is basically on target
 			if (perpendicularVelocity.dot(innerCircle) > 0.03) {
-				a += 0.03f;
+				a += type.speed / 30.0f;
 			} else if (perpendicularVelocity.dot(innerCircle) < -0.03) {
-				a -= 0.03f;
+				a -= type.speed / 30.0f;
 			}
 		} else if (targetAlignment > -0.9 && position.dist(focalPoint) > 64) {
 			// Spin around
 			// Larger value means longer extend
-			a += 0.03f;
+			a += type.speed / 15.0f;
 		}
 		setTarget(position.add(new Tuple(Math.sin(a), Math.cos(a))));
 		direction -= Math.PI / 2;
 
 		return true;
+	}
+
+	public BufferedImage shadowify(BufferedImage img) {
+		BufferedImage img2 = new BufferedImage(img.getWidth(), img.getHeight(), BufferedImage.TYPE_INT_ARGB);
+		for (int x = 0; x < img.getWidth(); x++) {
+			for (int y = 0; y < img.getHeight(); y++) {
+				if (((img.getRGB(x, y) >> 24) & 255) > 0)
+					img2.setRGB(x, y, 50 << 24);
+			}
+		}
+		return img2;
 	}
 
 	@Override
@@ -265,9 +310,13 @@ public class Plane extends Unit {
 						leadingForLanding = false;
 						landing = true;
 						airfield = (Airfield) unit;
-						System.out.println(unit);
 					}
 				}
+			}
+		}
+		if(e == InputEvent.KEY_PRESSED) {
+			if(Erovra2.apricot.keyboard.keyDown(KeyEvent.VK_SPACE)) {
+				health -= 10;
 			}
 		}
 	}
@@ -275,6 +324,8 @@ public class Plane extends Unit {
 	@Override
 	public void deadAnimation() {
 		scale *= 0.99;
+		height -= 32 / 120.0;
+		height = Math.max(height, 0);
 		position = position.add(velocity);
 
 		deathTicks += 0.5;
@@ -298,7 +349,7 @@ public class Plane extends Unit {
 		int x = (int) mousePosition.x;
 		int y = (int) mousePosition.y;
 		double dx = position.x - x;
-		double dy = y - position.y;
+		double dy = y - (position.y - 32);
 
 		double sin = Math.sin(direction);
 		double cos = Math.cos(direction);

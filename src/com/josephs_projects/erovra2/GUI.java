@@ -114,7 +114,7 @@ public class GUI implements Renderable {
 
 		// Draw bombs
 		g.drawString(String.valueOf(nation.bombs), 36, 79);
-		g.drawImage(bomb, 8, 62, null);
+		g.drawImage(bomb, 8, 64, null);
 	}
 
 	private void drawDashboard(Graphics2D g) {

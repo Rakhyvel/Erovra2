@@ -1,5 +1,7 @@
 package com.josephs_projects.erovra2.units.buildings;
 
+import java.awt.Cursor;
+
 import com.josephs_projects.apricotLibrary.Apricot;
 import com.josephs_projects.apricotLibrary.Tuple;
 import com.josephs_projects.erovra2.Erovra2;
@@ -32,6 +34,9 @@ public class Building extends Unit {
 			return;
 		}
 		hovered = boundingBox(Erovra2.terrain.getMousePosition());
+		if(hovered && (Unit.selected == this || Unit.selected == null)) {
+			Erovra2.apricot.cursor = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR);
+		}
 
 		if (hitTimer > 0)
 			hitTimer--;

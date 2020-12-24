@@ -19,7 +19,6 @@ import com.josephs_projects.erovra2.Erovra2;
 import com.josephs_projects.erovra2.Nation;
 import com.josephs_projects.erovra2.particles.Coin;
 import com.josephs_projects.erovra2.units.UnitType;
-import com.josephs_projects.erovra2.units.air.Bomber;
 import com.josephs_projects.erovra2.units.ground.Infantry;
 
 public class City extends Building {
@@ -34,7 +33,8 @@ public class City extends Building {
 	Label oreMinedLabel = new Label("", Erovra2.colorScheme, Erovra2.apricot, Erovra2.world);
 
 	private Label recruitsLabel = new Label("New recruits: ", Erovra2.colorScheme, Erovra2.apricot, Erovra2.world);
-	public RockerSwitch recruitSwitch = new RockerSwitch("Recruitment ", 40, 20, Erovra2.colorScheme, Erovra2.apricot, Erovra2.world);
+	public RockerSwitch recruitSwitch = new RockerSwitch("Recruitment ", 40, 20, Erovra2.colorScheme, Erovra2.apricot,
+			Erovra2.world);
 
 	List<Building> buildings = new ArrayList<>();
 
@@ -53,6 +53,7 @@ public class City extends Building {
 		oreMinedLabel.fontSize = 14;
 		info.addGUIObject(oreMinedLabel);
 		recruitsLabel.fontSize = 17;
+		recruitSwitch.value = true;
 		nation.population += 10;
 
 		info.addGUIObject(recruitsLabel);
@@ -71,25 +72,29 @@ public class City extends Building {
 
 	@Override
 	public void tick() {
+		// Add coin
 		if (Erovra2.apricot.ticks % 300 == 0) {
 			new Coin(new Tuple(position), nation);
 		}
+		
+		// Add infantry
 		if ((Erovra2.net == null || nation == Erovra2.home) && workTimer == 0) {
 			new Infantry(position, nation);
 			if (nation == Erovra2.home)
 				Erovra2.gui.messageContainer.addMessage("New recruits ready at " + name + "!", nation.color);
 			workTimer = 18000;
 		}
+		// Count down for infantry, only if recruiting and enough popul.
 		if (recruitSwitch != null && recruitSwitch.value
 				&& nation.mobilized <= nation.population - UnitType.INFANTRY.population)
 			workTimer--;
-		if (recruitSwitch != null && nation.mobilized > nation.population - UnitType.INFANTRY.population) {
-			recruitSwitch.value = false;
-		}
-		double ore = Math.max(0, (Erovra2.terrain.getOre(position) - 0.5));
-		oreMined += ore / 100.0;
+		
+		// Mine ore
+		oreMined += Math.max(0, (Erovra2.terrain.getOre(position) - 0.5)) / 100.0;
 		if (oreMinedLabel != null)
-			oreMinedLabel.text = "Ore: " + (int) oreMined + "&o";
+			oreMinedLabel.text = "Ore: " + (int) oreMined;
+		
+		// Building.tick()
 		super.tick();
 	}
 
@@ -110,7 +115,7 @@ public class City extends Building {
 			int width = g.getFontMetrics(bigFont).stringWidth(name);
 			g.drawString(name, dst[0].x - width / 2, dst[0].y + (int) (24 * Erovra2.zoom));
 		}
-		
+
 		g.setColor(new Color(0, 0, 0, 255));
 		g.setStroke(new BasicStroke((float) (Erovra2.zoom + 1), BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
 		if (Erovra2.zoom > 1.5) {
@@ -118,7 +123,7 @@ public class City extends Building {
 		} else {
 			g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
 		}
-		
+
 		int seconds = workTimer / 60;
 		int minutes = seconds / 60;
 		if (recruitsLabel != null)
@@ -135,8 +140,6 @@ public class City extends Building {
 		Apricot.image.overlayBlend(image, nation.color);
 		this.capital = true;
 		new Infantry(position, nation);
-		Bomber f = new Bomber(position, nation);
-		f.health = 50;
 		recruitSwitch.value = true;
 	}
 
@@ -167,10 +170,10 @@ public class City extends Building {
 		for (Building b : buildings)
 			b.remove();
 	}
-	
+
 	public boolean containsAirfield() {
-		for(Building b : buildings) {
-			if(b instanceof Airfield) {
+		for (Building b : buildings) {
+			if (b instanceof Airfield) {
 				return true;
 			}
 		}

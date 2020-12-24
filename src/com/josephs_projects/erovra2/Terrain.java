@@ -2,6 +2,7 @@ package com.josephs_projects.erovra2;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
+import java.awt.Cursor;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.event.KeyEvent;
@@ -30,10 +31,12 @@ public class Terrain implements Tickable, Renderable, InputListener {
 	private float[][] ore;
 	public boolean[][] oreMask;
 	public int size;
+	public int tiles;
 
 	private BufferedImage image;
 	public BufferedImage minimap;
-	private Label minimapInfoLabel = new Label("Click on the minimap to move unit", Erovra2.colorScheme, Erovra2.apricot, Erovra2.world);
+	private Label minimapInfoLabel = new Label("Click on the minimap to move unit", Erovra2.colorScheme,
+			Erovra2.apricot, Erovra2.world);
 	public BufferedImage oremap;
 	public Tuple offset;
 	private Tuple target = new Tuple();
@@ -52,6 +55,7 @@ public class Terrain implements Tickable, Renderable, InputListener {
 	 */
 	public Terrain(int size, int seed) {
 		this.size = size;
+		this.tiles = size / 64;
 		map = NoiseMap.normalize(NoiseMap.generate(size, seed, 0));
 		System.out.println("Terrain generated");
 		ore = NoiseMap.normalize(NoiseMap.generate(size, seed, 3));
@@ -93,7 +97,7 @@ public class Terrain implements Tickable, Renderable, InputListener {
 		try {
 			BufferedImage image = Apricot.image.loadImage(path);
 			this.size = image.getWidth();
-			Erovra2.size = size / 64;
+			Erovra2.size = tiles;
 			this.map = new float[size][size];
 			for (int y = 0; y < size; y++) {
 				for (int x = 0; x < size; x++) {
@@ -124,9 +128,9 @@ public class Terrain implements Tickable, Renderable, InputListener {
 				minimap.getHeight());
 		System.out.println("Mini painted");
 
-		oreMask = new boolean[size / 64][size / 64];
-		for (int x = 0; x < size / 64; x++) {
-			for (int y = 0; y < size / 64; y++) {
+		oreMask = new boolean[tiles][tiles];
+		for (int x = 0; x < tiles; x++) {
+			for (int y = 0; y < tiles; y++) {
 				oreMask[x][y] = false;
 			}
 		}
@@ -151,15 +155,15 @@ public class Terrain implements Tickable, Renderable, InputListener {
 	 * lines to be affine transformed later.
 	 */
 	private void setupGridLines() {
-		srcGridPoints = new Point2D[size / 64 + 2];
-		dstGridPoints = new Point2D[size / 64 + 2];
+		srcGridPoints = new Point2D[tiles + 2];
+		dstGridPoints = new Point2D[tiles + 2];
 
 		srcGridPoints[0] = new Point(0, 0);
 		dstGridPoints[0] = new Point(0, 0);
 		srcGridPoints[1] = new Point(size, size);
 		dstGridPoints[1] = new Point(size, size);
-		srcGridPoints[size / 64 + 1] = new Point(size, size);
-		dstGridPoints[size / 64 + 1] = new Point(size, size);
+		srcGridPoints[tiles + 1] = new Point(size, size);
+		dstGridPoints[tiles + 1] = new Point(size, size);
 
 		for (int i = 2; i < srcGridPoints.length - 1; i++) {
 			srcGridPoints[i] = new Point((i - 1) * 64, (i - 1) * 64);
@@ -193,13 +197,15 @@ public class Terrain implements Tickable, Renderable, InputListener {
 		// If mouse is down, change target for map
 		if (Erovra2.apricot.mouse.leftDown && holdingCtrl && movingMouse && Erovra2.apricot.mouse.getTuple().x >= 0) {
 			target = oldTarget.add(mouseInitial.sub(Erovra2.apricot.mouse.getTuple()).scalar(1 / Erovra2.zoom));
+			Erovra2.apricot.cursor = Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR);
+		} else {
+			Erovra2.apricot.cursor = Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR);
 		}
 
-		if (target.dist(offset) < 1)
+		if (target.distSquared(offset) < 1)
 			return;
 		// Map momentum code
-		Tuple velocity = target.sub(offset).normalize().scalar(offset.dist(target) * 0.1);
-		offset = offset.add(velocity);
+		offset.inc(target.sub(offset));
 	}
 
 	@Override
@@ -210,10 +216,10 @@ public class Terrain implements Tickable, Renderable, InputListener {
 
 		AffineTransform af = getAffineTransform(image);
 		// Draw background image
-		g.drawImage(image, getAffineTransform(image), null);
+		g.drawRenderedImage(image, getAffineTransform(image));
 
 		// Draw grid lines
-		srcGridPoints[size / 64 + 1] = new Point2D.Double(Erovra2.apricot.mouse.getTuple().x,
+		srcGridPoints[tiles + 1] = new Point2D.Double(Erovra2.apricot.mouse.getTuple().x,
 				Erovra2.apricot.mouse.getTuple().y);
 		af.transform(srcGridPoints, 0, dstGridPoints, 0, dstGridPoints.length - 1);
 		try {
@@ -222,15 +228,14 @@ public class Terrain implements Tickable, Renderable, InputListener {
 		} catch (NoninvertibleTransformException e) {
 			e.printStackTrace();
 		}
-		g.setColor(new Color(0, 0, 0, 60));
-		g.setStroke(new BasicStroke(2));
+		g.setColor(new Color(0, 0, 0, 50));
+		g.setStroke(new BasicStroke((int) Math.max(0, Math.min(2, (2 * Erovra2.zoom)))));
 		for (int i = 2; i < dstGridPoints.length - 1; i++) {
 			g.drawLine((int) dstGridPoints[i].getX(), (int) dstGridPoints[0].getY(), (int) dstGridPoints[i].getX(),
 					(int) dstGridPoints[1].getY());
 			g.drawLine((int) dstGridPoints[0].getX(), (int) dstGridPoints[i].getY(), (int) dstGridPoints[1].getX(),
 					(int) dstGridPoints[i].getY());
 		}
-		minimapInfoLabel.position = new Tuple(minimap.getWidth() / 2, Erovra2.apricot.height() - 30);
 		minimapInfoLabel.shown = Erovra2.apricot.mouse.position.x < Erovra2.terrain.minimap.getWidth()
 				&& Erovra2.apricot.mouse.position.y > Erovra2.apricot.height() - Erovra2.terrain.minimap.getHeight()
 				&& Unit.selected != null;
@@ -279,6 +284,9 @@ public class Terrain implements Tickable, Renderable, InputListener {
 			} else if (Erovra2.apricot.mouse.mouseWheelPosition > 0) {
 				Erovra2.zoom /= 1.1;
 			}
+		}
+		if (e == InputEvent.RESIZE) {
+			minimapInfoLabel.position = new Tuple(minimap.getWidth() / 2, Erovra2.apricot.height() - 30);
 		}
 		if (Erovra2.zoom < 0.75 * Erovra2.apricot.height() / (double) size)
 			Erovra2.zoom = 0.75 * Erovra2.apricot.height() / (double) size;
@@ -433,8 +441,8 @@ public class Terrain implements Tickable, Renderable, InputListener {
 	}
 
 	public void testSoil(Tuple position) {
-		for (int x = 0; x < size / 64; x++) {
-			for (int y = 0; y < size / 64; y++) {
+		for (int x = 0; x < tiles; x++) {
+			for (int y = 0; y < tiles; y++) {
 				if (new Tuple(x * 64 + 32, y * 64 + 32).dist(position) < 3 * 64) {
 					oreMask[x][y] = true;
 				}
@@ -445,9 +453,9 @@ public class Terrain implements Tickable, Renderable, InputListener {
 	}
 
 	public Tuple getMousePosition() {
-		if (dstGridPoints[size / 64 + 1] == null)
+		if (dstGridPoints[tiles + 1] == null)
 			return new Tuple();
-		return new Tuple(dstGridPoints[size / 64 + 1].getX(), dstGridPoints[size / 64 + 1].getY());
+		return new Tuple(dstGridPoints[tiles + 1].getX(), dstGridPoints[tiles + 1].getY());
 	}
 
 }

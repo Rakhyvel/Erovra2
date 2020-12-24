@@ -15,6 +15,8 @@ import com.josephs_projects.apricotLibrary.gui.LineBreak;
 import com.josephs_projects.apricotLibrary.gui.Updatable;
 import com.josephs_projects.erovra2.Erovra2;
 import com.josephs_projects.erovra2.Nation;
+import com.josephs_projects.erovra2.ResourceType;
+import com.josephs_projects.erovra2.gui.OrderButton;
 import com.josephs_projects.erovra2.units.UnitType;
 
 public class Infantry extends GroundUnit implements Updatable {
@@ -24,9 +26,9 @@ public class Infantry extends GroundUnit implements Updatable {
 	private GUIWrapper actions = new GUIWrapper(new Tuple(0, 0), Erovra2.GUI_LEVEL, Erovra2.colorScheme, Erovra2.apricot, Erovra2.world);
 	private GUIWrapper actionButtons = new GUIWrapper(new Tuple(0, 0), Erovra2.GUI_LEVEL, Erovra2.colorScheme, Erovra2.apricot, Erovra2.world);
 	private Label actionLabel = new Label("Actions", Erovra2.colorScheme, Erovra2.apricot, Erovra2.world);
-	private Button buildCityButton = new Button("Build city", 176, 30, Erovra2.colorScheme, Erovra2.apricot, Erovra2.world, (Updatable)this);
-	private Button buildFactoryButton = new Button("Build factory", 176, 30, Erovra2.colorScheme, Erovra2.apricot, Erovra2.world, (Updatable)this);
-	private Button buildAirfieldButton = new Button("Build airfield", 176, 30, Erovra2.colorScheme, Erovra2.apricot, Erovra2.world, (Updatable)this);
+	private OrderButton buildCityButton = new OrderButton(UnitType.CITY, 206, Erovra2.colorScheme, Erovra2.apricot, Erovra2.world, (Updatable)this);
+	private OrderButton buildFactoryButton = new OrderButton(UnitType.FACTORY, 206, Erovra2.colorScheme, Erovra2.apricot, Erovra2.world, (Updatable)this);
+	private OrderButton buildAirfieldButton = new OrderButton(UnitType.AIRFIELD, 206, Erovra2.colorScheme, Erovra2.apricot, Erovra2.world, (Updatable)this);
 	private Button testSoilButton = new Button("Test soil", 176, 30, Erovra2.colorScheme, Erovra2.apricot, Erovra2.world, (Updatable)this);
 
 	public boolean buildFactory = false;
@@ -75,11 +77,11 @@ public class Infantry extends GroundUnit implements Updatable {
 
 	@Override
 	public void update(String text) {
-		if (text.contains("city")) {
+		if (text.contains("City")) {
 			nation.buyCity(position);
-		} else if (text.contains("factory")) {
+		} else if (text.contains("Factory")) {
 			nation.buyFactory(position);
-		} else if (text.contains("airfield")) {
+		} else if (text.contains("Airfield")) {
 			nation.buyAirfield(position);
 		} else if (text.contains("soil")) {
 			double ore = Erovra2.terrain.getOre(position);
@@ -106,13 +108,9 @@ public class Infantry extends GroundUnit implements Updatable {
 		if (nation == Erovra2.enemy && engagedTicks <= 0 && !dead)
 			return;
 
-		buildAirfieldButton.label.text = "Build airfield " + nation.airfieldCost + "&c";
-		buildCityButton.label.text = "Build city " + nation.cityCost + "&c";
-		buildFactoryButton.label.text = "Build factory " + nation.factoryCost + "&c";
-
-		buildAirfieldButton.active = nation.coins >= nation.airfieldCost;
-		buildCityButton.active = nation.coins >= nation.cityCost;
-		buildFactoryButton.active = nation.coins >= nation.factoryCost;
+		buildAirfieldButton.active = nation.coins >= nation.airfieldCost[ResourceType.COIN];
+		buildCityButton.active = nation.coins >= nation.cityCost[ResourceType.COIN];
+		buildFactoryButton.active = nation.coins >= nation.factoryCost[ResourceType.COIN];
 
 		float deathOpacity = (float) Math.min(1, Math.max(0, (60 - deathTicks) / 60.0));
 		g.setColor(new Color(0, 0, 0, deathOpacity));

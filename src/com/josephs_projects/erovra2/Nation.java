@@ -55,9 +55,9 @@ public class Nation implements Tickable, Serializable {
 	public int mobilized;
 	public int bombs;
 
-	public int cityCost;
-	public int factoryCost;
-	public int airfieldCost;
+	public int[] cityCost;
+	public int[] factoryCost;
+	public int[] airfieldCost;
 
 	public AI ai;
 
@@ -119,9 +119,9 @@ public class Nation implements Tickable, Serializable {
 		population = 10;
 		cities = new ArrayList<>();
 
-		cityCost = 5;
-		factoryCost = 10;
-		airfieldCost = 10;
+		cityCost = new int[] { 5, 0, 0 };
+		factoryCost = new int[] { 10, 0, 0 };
+		airfieldCost = new int[] { 10, 0, 0 };
 	}
 
 	public void setCapital(Unit unit) {
@@ -146,12 +146,13 @@ public class Nation implements Tickable, Serializable {
 	}
 
 	public boolean buyCity(Tuple position) {
-		if (coins < cityCost)
+		if (coins < cityCost[ResourceType.COIN])
 			return false;
 		Tuple cityPoint = new Tuple(((int) (position.x / 64)) * 64 + 32, ((int) (position.y / 64)) * 64 + 32);
 		if (Erovra2.terrain.getHeight(cityPoint) < 0.5 || Erovra2.terrain.getHeight(cityPoint) > 1) {
 			if (ai == null) {
-				Erovra2.gui.messageContainer.addMessage("Cannot build city on water tile!", Erovra2.colorScheme.errorColor);
+				Erovra2.gui.messageContainer.addMessage("Cannot build city on water tile!",
+						Erovra2.colorScheme.errorColor);
 			}
 			return false;
 		}
@@ -185,45 +186,48 @@ public class Nation implements Tickable, Serializable {
 
 		new City(cityPoint, this);
 		built[(int) cityPoint.x / 64][(int) cityPoint.y / 64] = true;
-		coins -= cityCost;
-		cityCost *= 2;
+		coins -= cityCost[ResourceType.COIN];
+		cityCost[ResourceType.COIN] *= 2;
 		return true;
 	}
 
 	public boolean buyFactory(Tuple position) {
-		if (coins < factoryCost)
+		if (coins < factoryCost[ResourceType.COIN])
 			return false;
 		Tuple cityPoint = new Tuple(((int) (position.x / 64)) * 64 + 32, ((int) (position.y / 64)) * 64 + 32);
 		if (Erovra2.terrain.getHeight(cityPoint) < 0.5 || Erovra2.terrain.getHeight(cityPoint) > 1) {
 			if (ai == null) {
-				Erovra2.gui.messageContainer.addMessage("Cannot build factory on water tile!", Erovra2.colorScheme.errorColor);
+				Erovra2.gui.messageContainer.addMessage("Cannot build factory on water tile!",
+						Erovra2.colorScheme.errorColor);
 			}
 			return false;
 		}
 		if (built[(int) cityPoint.x / 64][(int) cityPoint.y / 64]
 				|| enemyNation.built[(int) cityPoint.x / 64][(int) cityPoint.y / 64]) {
 			if (ai == null) {
-				Erovra2.gui.messageContainer.addMessage("Cannot build factory on another building!", Erovra2.colorScheme.errorColor);
+				Erovra2.gui.messageContainer.addMessage("Cannot build factory on another building!",
+						Erovra2.colorScheme.errorColor);
 			}
 			return false;
 		}
 		City nearestCity = canBuildNextToCity(cityPoint);
 		if (nearestCity == null) {
 			if (ai == null) {
-				Erovra2.gui.messageContainer.addMessage("Must build factory next to city!", Erovra2.colorScheme.errorColor);
+				Erovra2.gui.messageContainer.addMessage("Must build factory next to city!",
+						Erovra2.colorScheme.errorColor);
 			}
 			return false;
 		}
 
 		new Factory(nearestCity.position.sub(cityPoint).scalar(0.25).add(cityPoint), nearestCity);
 		built[(int) cityPoint.x / 64][(int) cityPoint.y / 64] = true;
-		coins -= factoryCost;
-		factoryCost += 20;
+		coins -= factoryCost[ResourceType.COIN];
+		factoryCost[ResourceType.COIN] += 20;
 		return true;
 	}
 
 	public boolean buyAirfield(Tuple position) {
-		if (coins < airfieldCost)
+		if (coins < airfieldCost[ResourceType.COIN])
 			return false;
 		Tuple cityPoint = new Tuple(((int) (position.x / 64)) * 64 + 32, ((int) (position.y / 64)) * 64 + 32);
 		if (Erovra2.terrain.getHeight(cityPoint) < 0.5 || Erovra2.terrain.getHeight(cityPoint) > 1)
@@ -237,8 +241,8 @@ public class Nation implements Tickable, Serializable {
 
 		new Airfield(nearestCity.position.sub(cityPoint).scalar(0.25).add(cityPoint), nearestCity);
 		built[(int) cityPoint.x / 64][(int) cityPoint.y / 64] = true;
-		coins -= airfieldCost;
-		airfieldCost += 15;
+		coins -= airfieldCost[ResourceType.COIN];
+		airfieldCost[ResourceType.COIN] += 15;
 		return true;
 	}
 
@@ -351,5 +355,29 @@ public class Nation implements Tickable, Serializable {
 			return divisionNumber + sufixes[divisionNumber % 10];
 
 		}
+	}
+
+	/**
+	 * This is called by OrderButtons when they are retrieving the pointer to the
+	 * array for the resource costs of buildings.
+	 * 
+	 * Since building costs change, and change depending on each nation, each nation
+	 * should be responsible for keeping track of its own buildings costs.
+	 * 
+	 * It couldn't be stored in UnitType because that would be global for both
+	 * naitons, which wouldn't make sense.
+	 */
+	public int[] getResource(UnitType type) {
+		switch (type) {
+		case CITY:
+			return cityCost;
+		case FACTORY:
+			return factoryCost;
+		case AIRFIELD:
+			return airfieldCost;
+		default:
+			break;
+		}
+		return null;
 	}
 }

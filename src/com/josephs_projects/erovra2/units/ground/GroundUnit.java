@@ -1,5 +1,6 @@
 package com.josephs_projects.erovra2.units.ground;
 
+import java.awt.Cursor;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.List;
@@ -39,8 +40,12 @@ public abstract class GroundUnit extends Unit {
 
 	@Override
 	public void tick() {
+		// Unit.tick()
 		super.tick();
 		hovered = this.nation.ai == null && boundingBox(Erovra2.terrain.getMousePosition());
+		if(hovered && (Unit.selected == this || Unit.selected == null)) {
+			Erovra2.apricot.cursor = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR);
+		}
 	}
 
 	/**
@@ -61,19 +66,18 @@ public abstract class GroundUnit extends Unit {
 		}
 		if (!stuckIn && !engaged)
 			nation.visitedSpaces[(int) position.x / 32][(int) position.y / 32] = 11000;
-		if (position.dist(getTarget()) < 1 || velocity.magnitude() < 10 || stuckIn)
+		if (position.distSquared(getTarget()) < 1 || velocity.magSquared() < 100 || stuckIn)
 			return;
 
 		if (velocity == null)
 			return;
 
 		// Take step towards target based on speed
-		Tuple nextStep = position.add(velocity.normalize().scalar(type.speed));
-		if (Erovra2.terrain.getHeight(nextStep) < 0.5) {
-			setTarget(position);
+		position.inc(velocity.normalize().scalar(type.speed));
+		if (Erovra2.terrain.getHeight(position) < 0.5) {
+			position.dec(velocity.normalize().scalar(type.speed));
 			return;
 		}
-		position = nextStep;
 	}
 
 	/**

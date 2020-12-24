@@ -74,9 +74,11 @@ public abstract class Unit implements Tickable, Renderable, InputListener, Updat
 	public static Unit selected = null; // Can be made a list
 	public static Unit focused = null;
 
-	protected GUIWrapper focusedOptions = new GUIWrapper(new Tuple(0, 0), Erovra2.GUI_LEVEL, Erovra2.colorScheme, Erovra2.apricot, Erovra2.world);
+	protected GUIWrapper focusedOptions = new GUIWrapper(new Tuple(0, 0), Erovra2.GUI_LEVEL, Erovra2.colorScheme,
+			Erovra2.apricot, Erovra2.world);
 
-	protected GUIWrapper info = new GUIWrapper(new Tuple(0, 0), Erovra2.GUI_LEVEL, Erovra2.colorScheme, Erovra2.apricot, Erovra2.world);
+	protected GUIWrapper info = new GUIWrapper(new Tuple(0, 0), Erovra2.GUI_LEVEL, Erovra2.colorScheme, Erovra2.apricot,
+			Erovra2.world);
 	protected ProgressBar healthBar = new ProgressBar(176, 9, Erovra2.colorScheme, Erovra2.apricot, Erovra2.world);
 	protected Label infoLabel = new Label("UNDEF", Erovra2.colorScheme, Erovra2.apricot, Erovra2.world);
 	protected Label attackLabel = new Label("A/D/S:  ", Erovra2.colorScheme, Erovra2.apricot, Erovra2.world);
@@ -166,6 +168,11 @@ public abstract class Unit implements Tickable, Renderable, InputListener, Updat
 	}
 
 	public AffineTransform getAffineTransform(BufferedImage image) {
+		return getAffineTransform(image, 0);
+	}
+
+	
+	public AffineTransform getAffineTransform(BufferedImage image, double height) {
 		AffineTransform scaleCenter = new AffineTransform();
 		if (image == null) {
 			return scaleCenter;
@@ -174,7 +181,7 @@ public abstract class Unit implements Tickable, Renderable, InputListener, Updat
 		align.translate(
 				(position.x - Erovra2.terrain.offset.x) * Erovra2.zoom
 						+ (Erovra2.apricot.width() - image.getWidth()) / 2,
-				(position.y - Erovra2.terrain.offset.y) * Erovra2.zoom
+				(position.y - Erovra2.terrain.offset.y - height) * Erovra2.zoom
 						+ (Erovra2.apricot.height() - image.getHeight()) / 2);
 
 		scaleCenter.translate(image.getWidth() / 2, image.getHeight() / 2);
@@ -201,17 +208,18 @@ public abstract class Unit implements Tickable, Renderable, InputListener, Updat
 			g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 			g.drawImage(hit, getAffineTransform(hit), null);
 		}
-		
+
 		float deathOpacity = (float) Math.min(1, Math.max(0, (60 - deathTicks) / 60.0));
 		g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, deathOpacity));
-		g.drawImage(image, getAffineTransform(image), null);
+		g.drawRenderedImage(image, getAffineTransform(image));
 		g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1));
 
 		if (focusedOptions != null) {
 			healthBar.progress = health / 100.0;
 			focusedOptions.setShown(this == focused);
 			focusedOptions
-					.updatePosition(new Tuple(Erovra2.terrain.minimap.getWidth(), Erovra2.apricot.height() - GUI.dashboardHeight));
+					.updatePosition(new Tuple(Erovra2.terrain.minimap.getWidth(),
+							Erovra2.apricot.height() - GUI.dashboardHeight));
 		}
 	}
 
@@ -272,7 +280,7 @@ public abstract class Unit implements Tickable, Renderable, InputListener, Updat
 				if (p.position.dist(position) > 64)
 					continue;
 				boolean checkHealth = false;
-				if (p.type == ProjectileType.SHELL) {
+				if (p.type == ProjectileType.SHELL || p.type == ProjectileType.BOMB) {
 					health += p.attack / 64.0 * p.position.dist(position) - p.attack;
 					checkHealth = true;
 				} else {
@@ -294,7 +302,7 @@ public abstract class Unit implements Tickable, Renderable, InputListener, Updat
 					if (nation == Erovra2.home && Erovra2.net != null) {
 						Erovra2.net.opQ.add(new HitUnit(id));
 					}
-					if (p.type != ProjectileType.SHELL)
+					if (p.type != ProjectileType.SHELL || p.type == ProjectileType.BOMB)
 						p.remove();
 					if (health < 0 && (Erovra2.net == null || nation == Erovra2.home)) {
 						dead = true;
@@ -310,6 +318,9 @@ public abstract class Unit implements Tickable, Renderable, InputListener, Updat
 		}
 	}
 
+	/**
+	 * Short-circuit call by tick() method if Unit is dead
+	 */
 	public void deadAnimation() {
 		deathTicks++;
 		hitTimer = 0;
@@ -408,6 +419,6 @@ public abstract class Unit implements Tickable, Renderable, InputListener, Updat
 
 	@Override
 	public String toString() {
-		return type.toString().charAt(0) + type.toString().substring(1).toLowerCase();
+		return type.getName();
 	}
 }

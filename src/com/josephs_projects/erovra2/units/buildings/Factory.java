@@ -14,6 +14,8 @@ import com.josephs_projects.apricotLibrary.gui.RockerSwitch;
 import com.josephs_projects.apricotLibrary.gui.Updatable;
 import com.josephs_projects.erovra2.Erovra2;
 import com.josephs_projects.erovra2.Nation;
+import com.josephs_projects.erovra2.ResourceType;
+import com.josephs_projects.erovra2.gui.OrderButton;
 import com.josephs_projects.erovra2.units.UnitType;
 import com.josephs_projects.erovra2.units.air.Attacker;
 import com.josephs_projects.erovra2.units.air.Bomber;
@@ -25,25 +27,38 @@ public class Factory extends Building {
 	private int workTimer = 0;
 	public UnitType order = null;
 	private int totalWorkTimer = 0;
+	
 	private int coinRefund = 0;
 	private int oreRefund = 0;
+	private int bombRefund = 0;
 
 	private Label currentOrderLabel = new Label("Order: None", Erovra2.colorScheme, Erovra2.apricot, Erovra2.world);
-	private RockerSwitch autoSwitch = new RockerSwitch("Auto order ", 40, 20, Erovra2.colorScheme, Erovra2.apricot, Erovra2.world);
+	private RockerSwitch autoSwitch = new RockerSwitch("Auto order ", 40, 20, Erovra2.colorScheme, Erovra2.apricot,
+			Erovra2.world);
 	private Label orderActionLabel = new Label("Actions", Erovra2.colorScheme, Erovra2.apricot, Erovra2.world);
 
-	private GUIWrapper actions = new GUIWrapper(new Tuple(0, 0), Erovra2.GUI_LEVEL, Erovra2.colorScheme, Erovra2.apricot, Erovra2.world);
-	private GUIWrapper actionButtons = new GUIWrapper(new Tuple(0, 0), Erovra2.GUI_LEVEL, Erovra2.colorScheme, Erovra2.apricot, Erovra2.world);
+	private GUIWrapper actions = new GUIWrapper(new Tuple(0, 0), Erovra2.GUI_LEVEL, Erovra2.colorScheme,
+			Erovra2.apricot, Erovra2.world);
+	private GUIWrapper actionButtons = new GUIWrapper(new Tuple(0, 0), Erovra2.GUI_LEVEL, Erovra2.colorScheme,
+			Erovra2.apricot, Erovra2.world);
 	private Label actionLabel = new Label("Actions", Erovra2.colorScheme, Erovra2.apricot, Erovra2.world);
-	private Button buildCavalryButton = new Button("Cavalry 15&c 5&o", 176, 30, Erovra2.colorScheme, Erovra2.apricot, Erovra2.world, (Updatable) this);
-	private Button buildArtilleryButton = new Button("Artillery 15&c 5&o", 176, 30, Erovra2.colorScheme, Erovra2.apricot, Erovra2.world, (Updatable) this);
-	private Button buildFighterButton = new Button("Fighter 15&c 5&o", 176, 30, Erovra2.colorScheme, Erovra2.apricot, Erovra2.world, (Updatable) this);
-	private Button buildAttackerButton = new Button("Attacker 15&c 5&o", 176, 30, Erovra2.colorScheme, Erovra2.apricot, Erovra2.world, (Updatable) this);
-	private Button buildBomberButton = new Button("Bomber 15&c 5&o", 176, 30, Erovra2.colorScheme, Erovra2.apricot, Erovra2.world, (Updatable) this);
-	private Button buildBombButton = new Button("Bomb 15&c 5&o", 176, 30, Erovra2.colorScheme, Erovra2.apricot, Erovra2.world, (Updatable) this);
+	private OrderButton buildCavalryButton = new OrderButton(UnitType.CAVALRY, 206, Erovra2.colorScheme,
+			Erovra2.apricot, Erovra2.world, (Updatable) this);
+	private OrderButton buildArtilleryButton = new OrderButton(UnitType.ARTILLERY, 206, Erovra2.colorScheme,
+			Erovra2.apricot, Erovra2.world, (Updatable) this);
+	private OrderButton buildFighterButton = new OrderButton(UnitType.FIGHTER, 206, Erovra2.colorScheme,
+			Erovra2.apricot, Erovra2.world, (Updatable) this);
+	private OrderButton buildAttackerButton = new OrderButton(UnitType.ATTACKER, 206, Erovra2.colorScheme,
+			Erovra2.apricot, Erovra2.world, (Updatable) this);
+	private OrderButton buildBomberButton = new OrderButton(UnitType.BOMBER, 206, Erovra2.colorScheme, Erovra2.apricot,
+			Erovra2.world, (Updatable) this);
+	private OrderButton buildBombButton = new OrderButton(UnitType.BOMB, 206, Erovra2.colorScheme, Erovra2.apricot,
+			Erovra2.world, (Updatable) this);
 
-	private GUIWrapper orderActions = new GUIWrapper(new Tuple(0, 0), Erovra2.GUI_LEVEL, Erovra2.colorScheme, Erovra2.apricot, Erovra2.world);
-	private Button cancelOrderButton = new Button("Cancel order", 176, 30, Erovra2.colorScheme, Erovra2.apricot, Erovra2.world, (Updatable) this);
+	private GUIWrapper orderActions = new GUIWrapper(new Tuple(0, 0), Erovra2.GUI_LEVEL, Erovra2.colorScheme,
+			Erovra2.apricot, Erovra2.world);
+	private Button cancelOrderButton = new Button("Cancel order", 176, 30, Erovra2.colorScheme, Erovra2.apricot,
+			Erovra2.world, (Updatable) this);
 	City homeCity;
 
 	public Factory(Tuple position, City homeCity) {
@@ -83,7 +98,9 @@ public class Factory extends Building {
 
 	@Override
 	public void tick() {
+		// Check to see if order is complete
 		if ((Erovra2.net == null || homeCity.nation == Erovra2.home) && workTimer == 0) {
+			// Add order...
 			if (order == UnitType.ARTILLERY) {
 				new Artillery(position, homeCity.nation);
 			} else if (order == UnitType.CAVALRY) {
@@ -97,24 +114,26 @@ public class Factory extends Building {
 			} else if (order == UnitType.BOMB) {
 				nation.bombs++;
 			}
+			// Update message
 			if (order != null && nation.ai == null) {
 				Erovra2.gui.messageContainer.addMessage("Order delivered at " + homeCity.name + " factory!",
 						nation.color);
 			}
+			// Check to see if auto switch is on
 			if (autoSwitch != null && autoSwitch.value) {
 				startProduction(order);
-				if(order == null)
+				if (order == null)
 					autoSwitch.value = false;
 			} else {
 				order = null;
 			}
 		}
+		
+		// Decrease workTimer
 		if (order != null && nation.mobilized <= nation.population - order.population)
 			workTimer--;
-		if (order != null && nation.mobilized > nation.population - order.population) {
-			autoSwitch.value = false;
-		}
 
+		// Building.tick()
 		super.tick();
 	}
 
@@ -142,8 +161,8 @@ public class Factory extends Building {
 			buildAttackerButton.active = homeCity.nation.coins >= 15 && homeCity.oreMined >= 5
 					&& homeCity.containsAirfield();
 			buildBomberButton.active = homeCity.nation.coins >= 15 && homeCity.oreMined >= 5
-					&& homeCity.containsAirfield();
-			buildBombButton.active = homeCity.nation.coins >= 15 && homeCity.oreMined >= 5;
+					&& homeCity.containsAirfield() && homeCity.nation.bombs >= 1;
+			buildBombButton.active = homeCity.nation.coins >= 5 && homeCity.oreMined >= 5;
 		} else {
 			int seconds = workTimer / 60;
 			int minutes = seconds / 60;
@@ -164,19 +183,23 @@ public class Factory extends Building {
 			startProduction(UnitType.FIGHTER);
 		} else if (text.contains("Attacker")) {
 			startProduction(UnitType.ATTACKER);
-		}  else if (text.contains("Bomber")) {
+		} else if (text.contains("Bomber")) {
 			startProduction(UnitType.BOMBER);
-		}  else if (text.contains("Bomb")) {
+		} else if (text.contains("Bomb")) {
 			startProduction(UnitType.BOMB);
 		} else if (text.contains("Cancel order")) {
 			homeCity.nation.coins += (int) (coinRefund * (double) (workTimer) / totalWorkTimer);
 			homeCity.oreMined += (int) (oreRefund * (double) (workTimer) / totalWorkTimer);
+			homeCity.nation.bombs+= (int) (bombRefund * (double) (workTimer) / totalWorkTimer);
 			order = null;
 		}
 	}
 
 	public void startProduction(UnitType order) {
-		if (homeCity.nation.coins < 15) {
+		if(order == null)
+			return;
+		
+		if (homeCity.nation.coins < order.resources[ResourceType.COIN]) {
 			this.order = null;
 			if (nation.ai == null) {
 				Erovra2.gui.messageContainer.addMessage(
@@ -184,7 +207,7 @@ public class Factory extends Building {
 			}
 			return;
 		}
-		if (homeCity.oreMined < 5) {
+		if (homeCity.oreMined < order.resources[ResourceType.ORE]) {
 			this.order = null;
 			if (nation.ai == null) {
 				Erovra2.gui.messageContainer.addMessage(
@@ -192,13 +215,24 @@ public class Factory extends Building {
 			}
 			return;
 		}
+		if (homeCity.nation.bombs < order.resources[ResourceType.BOMB]) {
+			this.order = null;
+			if (nation.ai == null) {
+				Erovra2.gui.messageContainer.addMessage(
+						homeCity.name + " factory cannot fulfill order due to lack of bombs!", new Color(248, 89, 81));
+			}
+			return;
+		}
+
 		this.order = order;
 		workTimer = 6000;
 		totalWorkTimer = 6000;
-		homeCity.nation.coins -= 15;
-		homeCity.oreMined -= 5;
-		coinRefund = 15;
-		oreRefund = 5;
+		homeCity.nation.coins -= order.resources[ResourceType.COIN];
+		homeCity.oreMined -= order.resources[ResourceType.ORE];
+		homeCity.nation.bombs -= order.resources[ResourceType.BOMB];
+		coinRefund = order.resources[ResourceType.COIN];
+		oreRefund = order.resources[ResourceType.ORE];
+		bombRefund = order.resources[ResourceType.BOMB];
 	}
 
 	public boolean producing() {

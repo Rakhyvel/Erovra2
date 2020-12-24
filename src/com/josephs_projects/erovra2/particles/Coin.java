@@ -21,6 +21,7 @@ public class Coin implements Tickable, Renderable {
 
 	public Coin(Tuple position, Nation nation) {
 		this.position = position;
+		this.velocity = nation.capitalPoint.sub(position).normalize();
 		Erovra2.world.add(this);
 		try {
 			image = Apricot.image.loadImage("/res/coin.png");
@@ -34,8 +35,8 @@ public class Coin implements Tickable, Renderable {
 	public void tick() {
 		if (speed < 6)
 			speed *= 1.1;
-		position = position.add(nation.capitalPoint.sub(position).normalize().scalar(speed));
-		if (position.dist(nation.capitalPoint) < 6) {
+		position.inc(velocity.scalar(speed));
+		if (position.cabDist(nation.capitalPoint) < 6) {
 			nation.coins++;
 			Erovra2.world.remove(this);
 		}
@@ -45,7 +46,7 @@ public class Coin implements Tickable, Renderable {
 	public void render(Graphics2D g) {
 		if (nation != Erovra2.home)
 			return;
-		g.drawImage(image, getAffineTransform(image), null);
+		g.drawRenderedImage(image, getAffineTransform(image));
 	}
 
 	@Override

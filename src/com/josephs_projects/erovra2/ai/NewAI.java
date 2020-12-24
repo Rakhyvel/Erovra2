@@ -6,6 +6,7 @@ import com.josephs_projects.apricotLibrary.Apricot;
 import com.josephs_projects.apricotLibrary.Tuple;
 import com.josephs_projects.erovra2.Erovra2;
 import com.josephs_projects.erovra2.Nation;
+import com.josephs_projects.erovra2.ResourceType;
 import com.josephs_projects.erovra2.units.Unit;
 import com.josephs_projects.erovra2.units.UnitType;
 import com.josephs_projects.erovra2.units.buildings.Building;
@@ -112,13 +113,13 @@ public class NewAI implements AI {
 						continue;
 					Tuple cityPoint = searchForCity(inf, nation);
 					Tuple factoryPoint = searchForFactory(inf, nation);
-					if (nation.coins >= nation.cityCost && cityPoint != null) {
+					if (nation.coins >= nation.cityCost[ResourceType.COIN] && cityPoint != null) {
 						inf.setTarget(cityPoint);
 						if (inf.position.dist(inf.getTarget()) < 32) {
 							nation.buyCity(inf.position);
 						}
 						return;
-					} else if (nation.coins >= nation.factoryCost && factoryPoint != null) {
+					} else if (nation.coins >= nation.factoryCost[ResourceType.COIN] && factoryPoint != null) {
 						inf.setTarget(factoryPoint);
 						if (inf.position.dist(inf.getTarget()) < 32) {
 							nation.buyFactory(inf.position);
